@@ -1,0 +1,30 @@
+# Cada vez que subimos cambios, GitHub corre todas las simulaciones y la
+# revisión de síntesis con Yosys. Si algo deja de pasar, nos enteramos antes
+# de llevarlo al laboratorio.
+name: Simulación
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Icarus Verilog y Yosys
+        run: sudo apt-get update && sudo apt-get install -y iverilog yosys
+
+      - name: Correr todos los testbenches
+        run: bash sim/correr_todo.sh
+
+      - name: Revisión de síntesis (latches y tamaño)
+        run: bash scripts/sintesis_yosys.sh
+
+      - name: Guardar registros
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: registros-simulacion
+          path: sim/logs/

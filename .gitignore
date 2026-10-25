@@ -1,0 +1,32 @@
+# Simulación: los ejecutables y las ondas se regeneran con sim/correr_todo.sh
+sim/build/
+sim/*.vcd
+sim/partida.txt
+sim/logs/*.compilacion.log
+
+# Quartus II
+quartus/db/
+quartus/incremental_db/
+quartus/salida/
+quartus/output_files/
+quartus/simulation/
+quartus/greybox_tmp/
+quartus/*.qws
+quartus/*.bak
+quartus/*.rpt
+quartus/*.summary
+quartus/*.smsg
+quartus/*.jdi
+quartus/*.pin
+quartus/*.sof
+quartus/*.pof
+quartus/*.done
+quartus/*.qarlog
+quartus/PLLJ_PLLSPE_INFO.txt
+quartus/c5_pin_model_dump.txt
+
+# Python y sistema
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

@@ -1,0 +1,93 @@
+# ============================================================================
+#  pong.qsf - Configuración del proyecto Quartus II
+#  Pong en FPGA - Electrónica Digital 1 - Universidad Nacional de Colombia
+#  Daniel Felipe Castro González, Juan David Ortiz Muñoz, David Eduardo Chivata Arias
+# ----------------------------------------------------------------------------
+#  OJO, LEER ANTES DE PROGRAMAR LA TARJETA:
+#  Las asignaciones de pines de la tarjeta (reloj, pulsadores y LEDs) las
+#  tomamos de la documentación de las tarjetas tipo "RZ-EasyFPGA A2.x" con
+#  EP4CE10E22C8N, que es la más parecida a la nuestra. Son TENTATIVAS: antes
+#  de conectar cualquier cosa hay que revisar el esquema de NUESTRA tarjeta
+#  (punto PC4 de la guía, decisión D-15 en docs/decisiones.md).
+#
+#  Los pines hacia periféricos externos (MAX7219, displays y receptores RF)
+#  los dejamos comentados con "PIN_??" a propósito: se eligen sobre el
+#  conector de expansión después de verificar a qué banco pertenece cada uno
+#  y con qué tensión de E/S trabaja ese banco.
+# ============================================================================
+
+set_global_assignment -name FAMILY "Cyclone IV E"
+set_global_assignment -name DEVICE EP4CE10E22C8
+set_global_assignment -name TOP_LEVEL_ENTITY pong_top
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 13.0
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY salida
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP "AS INPUT TRI-STATED"
+set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+
+# ---------------------------------------------------------------- Fuentes RTL
+set_global_assignment -name VERILOG_FILE ../rtl/pong_top.v
+set_global_assignment -name VERILOG_FILE ../rtl/generador_ticks.v
+set_global_assignment -name VERILOG_FILE ../rtl/antirrebote.v
+set_global_assignment -name VERILOG_FILE ../rtl/entradas.v
+set_global_assignment -name VERILOG_FILE ../rtl/paletas.v
+set_global_assignment -name VERILOG_FILE ../rtl/colisiones.v
+set_global_assignment -name VERILOG_FILE ../rtl/pelota.v
+set_global_assignment -name VERILOG_FILE ../rtl/puntaje.v
+set_global_assignment -name VERILOG_FILE ../rtl/control_juego.v
+set_global_assignment -name VERILOG_FILE ../rtl/imagen.v
+set_global_assignment -name VERILOG_FILE ../rtl/max7219_tx.v
+set_global_assignment -name VERILOG_FILE ../rtl/siete_segmentos.v
+set_global_assignment -name SDC_FILE pong.sdc
+
+# ---------------------------------------------------------------- Tarjeta (TENTATIVO)
+set_location_assignment PIN_23 -to CLK_SYS
+set_location_assignment PIN_25 -to RESET_PIN
+set_location_assignment PIN_88 -to START_PIN
+
+# Para la prueba física #4 (controles cableados, sin RF) podemos usar los
+# pulsadores de la tarjeta. En ese caso: USAR_VT = 0 y CTRL_ACTIVO_BAJO = 1
+# en pong_top, y descomentar estas cuatro líneas.
+# set_location_assignment PIN_89 -to J1_UP
+# set_location_assignment PIN_90 -to J1_DOWN
+# set_location_assignment PIN_91 -to J2_UP
+# set_location_assignment PIN_?? -to J2_DOWN
+
+set_location_assignment PIN_87 -to LED[0]
+set_location_assignment PIN_86 -to LED[1]
+set_location_assignment PIN_85 -to LED[2]
+set_location_assignment PIN_84 -to LED[3]
+
+# ---------------------------------------------------------------- MAX7219 (por definir)
+# DIN, CLK_LED y LOAD salen a 3,3 V y pasan por el SN74AHCT125 hacia 5 V.
+# set_location_assignment PIN_?? -to DIN
+# set_location_assignment PIN_?? -to CLK_LED
+# set_location_assignment PIN_?? -to LOAD
+
+# ---------------------------------------------------------------- Receptores RF (por definir)
+# Las salidas del receptor NO pueden llegar a 5 V a la FPGA: alimentarlo a
+# 3,3 V o poner divisor/adaptador (decisión D-12).
+# set_location_assignment PIN_?? -to J1_UP
+# set_location_assignment PIN_?? -to J1_DOWN
+# set_location_assignment PIN_?? -to J1_VT
+# set_location_assignment PIN_?? -to J2_UP
+# set_location_assignment PIN_?? -to J2_DOWN
+# set_location_assignment PIN_?? -to J2_VT
+
+# ---------------------------------------------------------------- Displays (por definir)
+# SEG_Jx[0] = a ... SEG_Jx[6] = g. Corriente por segmento limitada con
+# resistencias de 330 ohm (ver docs/hardware.md).
+# set_location_assignment PIN_?? -to SEG_J1[0]
+# ... (14 líneas en total)
+
+# ---------------------------------------------------------------- Estándar de E/S
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to *
+set_instance_assignment -name CURRENT_STRENGTH_NEW "8MA" -to DIN
+set_instance_assignment -name CURRENT_STRENGTH_NEW "8MA" -to CLK_LED
+set_instance_assignment -name CURRENT_STRENGTH_NEW "8MA" -to LOAD
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to RESET_PIN
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to START_PIN
