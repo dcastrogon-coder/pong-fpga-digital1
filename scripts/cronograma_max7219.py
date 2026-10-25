@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # ============================================================================
 #  cronograma_max7219.py
-#  Dibuja el diagrama de tiempos DIN / CLK_LED / LOAD de UNA transferencia de
-#  32 bits hacia los dos MAX7219, sacado directamente del VCD de tb_max7219.
+#  Dibuja el diagrama de tiempos DIN / CLK_LED / LOAD de UNA transferencia
+#  (16 bits por chip: 64 con el módulo x4) sacada directamente del VCD de
+#  tb_max7219.
 #
 #  Autores: Daniel Felipe Castro González, Juan David Ortiz Muñoz,
 #           David Eduardo Chivata Arias
@@ -73,7 +74,8 @@ def main():
     bits = [valor_en(s["din_a"], t - 1) for t in flancos]
     palabra = int("".join(map(str, bits)), 2)
 
-    fig, ax = plt.subplots(figsize=(15, 4.2))
+    n_chips = len(flancos) // 16
+    fig, ax = plt.subplots(figsize=(8 + 3.5 * n_chips, 4.2))
     escala = 1e-6   # ps -> us
     for i, (nombre, etiqueta) in enumerate([("load_a", "LOAD"), ("clk_a", "CLK_LED"), ("din_a", "DIN")]):
         base = i * 1.6
@@ -89,25 +91,31 @@ def main():
 
     # Etiquetas de los bits encima de DIN
     for k, t in enumerate(flancos):
-        chip = "U2" if k < 16 else "U1"
         bit = 15 - (k % 16)
-        ax.text(t * escala, 4.35, f"D{bit}", ha="center", fontsize=6.5, rotation=90,
+        ax.text(t * escala, 4.35, f"D{bit}", ha="center", fontsize=5.5, rotation=90,
                 color="#555" if bit > 11 else ("#8e44ad" if bit > 7 else "#16a085"))
-    mitad = (flancos[15] + flancos[16]) / 2 * escala
-    ax.axvline(mitad, color="#999", ls="--", lw=0.8)
-    ax.text((flancos[0] * escala + mitad) / 2, 5.0, "primeros 16 bits → U2 (chip lejano)", ha="center", fontsize=10)
-    ax.text((mitad + flancos[-1] * escala) / 2, 5.0, "últimos 16 bits → U1 (chip cercano)", ha="center", fontsize=10)
+    # Separadores entre las palabras de cada chip. La primera palabra que sale
+    # termina en el chip más lejano (posición N-1) y la última en el cercano (0).
+    for g in range(n_chips):
+        ini = flancos[16 * g] * escala
+        fin = flancos[16 * g + 15] * escala
+        if g > 0:
+            ax.axvline((flancos[16 * g - 1] + flancos[16 * g]) / 2 * escala, color="#999", ls="--", lw=0.8)
+        pos = n_chips - 1 - g
+        nombre = "cercano" if pos == 0 else ("más lejano" if pos == n_chips - 1 else "")
+        ax.text((ini + fin) / 2, 5.0, f"→ chip {pos} {nombre}".strip(), ha="center", fontsize=9)
 
     ax.set_ylim(-0.4, 5.4)
     ax.set_yticks([])
     ax.set_xlabel("tiempo [µs]  (CLK_LED = 1 MHz, DIV_CLK = 25 con reloj de 50 MHz)")
-    ax.set_title(f"Transferencia #{n} hacia los dos MAX7219: trama 0x{palabra:08X}  "
-                 f"(U2 ← 0x{palabra >> 16:04X},  U1 ← 0x{palabra & 0xFFFF:04X})", fontsize=12)
+    palabras = [(palabra >> (16 * (n_chips - 1 - g))) & 0xFFFF for g in range(n_chips)]
+    ax.set_title(f"Transferencia #{n} hacia {n_chips} MAX7219 en cascada: "
+                 + ",  ".join(f"0x{w:04X}" for w in palabras), fontsize=12)
     for lado in ("top", "right", "left"):
         ax.spines[lado].set_visible(False)
     fig.tight_layout()
     fig.savefig(args.salida, dpi=130)
-    print(f"Trama 0x{palabra:08X} -> {args.salida}")
+    print(f"Trama 0x{palabra:0{4 * n_chips}X} ({n_chips} chips) -> {args.salida}")
 
 
 if __name__ == "__main__":

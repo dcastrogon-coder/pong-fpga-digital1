@@ -11,9 +11,9 @@
 //   pines RF/botones -> entradas -> paletas, pelota(+colisiones), puntaje,
 //                                    control_juego
 //                                         |
-//                     imagen 8x16 <-------+-------> siete_segmentos (x2)
+//                     imagen 8xANCHO <----+-------> siete_segmentos (x2)
 //                         |
-//                    max7219_tx -> DIN / CLK_LED / LOAD -> 2 x MAX7219
+//                    max7219_tx -> DIN / CLK_LED / LOAD -> 4 x MAX7219 (módulo x4)
 //
 //  Todos los parámetros de tiempo se pueden sobrescribir desde el testbench.
 //  Eso fue clave para simular: con CLK_HZ = 50 MHz una partida completa son
@@ -24,6 +24,10 @@
 `timescale 1ns / 1ps
 
 module pong_top #(
+    // Ancho de la cancha en columnas. 32 = módulo "MAX7219 x4" (cuatro
+    // matrices 8x8 en una sola placa, que es el que compramos). 16 = dos
+    // matrices sueltas, como en la propuesta original. Solo se admiten 16 y 32.
+    parameter integer ANCHO           = 32,
     parameter integer CLK_HZ          = 50_000_000,
     parameter integer N_MUESTRAS      = 8,
     parameter integer DIV_CLK_LED     = 25,
@@ -46,7 +50,10 @@ module pong_top #(
     parameter         TRANSPONER        = 0,
     parameter         INV_BITS          = 0,
     parameter         INV_DIGITOS       = 0,
-    parameter         MODULO_CERCANO    = 0
+    parameter         MODULO_CERCANO    = 0,
+    // 1 = mostrar siempre el patrón de calibración. Con 0 el patrón igual
+    // aparece mientras se mantenga presionado RESET (ver imagen.v).
+    parameter         PATRON_PRUEBA     = 0
 )(
     input  wire       CLK_SYS,
     input  wire       RESET_PIN,
@@ -86,7 +93,20 @@ module pong_top #(
     wire       mover_pelota;
     wire       rst;            // reinicio general del juego (POR o botón RESET)
 
-    generador_ticks #(.CLK_HZ(CLK_HZ)) u_ticks (
+    // Con 32 columnas la pelota tiene que recorrer el doble, así que la
+    // hacemos más rápida para que cruzar la cancha tome un tiempo parecido
+    // (unos 5 s al empezar la jugada en vez de casi 8 s).
+    localparam integer XB      = (ANCHO > 16) ? 5 : 4;
+    localparam integer N_CHIPS = ANCHO / 8;
+    localparam integer T_B0 = (ANCHO > 16) ? 170 : 260;
+    localparam integer T_B1 = (ANCHO > 16) ? 130 : 200;
+    localparam integer T_B2 = (ANCHO > 16) ? 100 : 150;
+    localparam integer T_B3 = (ANCHO > 16) ?  75 : 110;
+
+    generador_ticks #(
+        .CLK_HZ(CLK_HZ),
+        .T_BOLA_0_MS(T_B0), .T_BOLA_1_MS(T_B1), .T_BOLA_2_MS(T_B2), .T_BOLA_3_MS(T_B3)
+    ) u_ticks (
         .clk(CLK_SYS), .rst(por),
         .nivel(nivel),
         .sincronizar(~mover_pelota | rst),   // fuera de JUEGO el contador espera en cero
@@ -122,7 +142,7 @@ module pong_top #(
     // Motor del Pong
     // ------------------------------------------------------------------
     wire [2:0] yp1, yp2;
-    wire [3:0] bx;
+    wire [XB-1:0] bx;
     wire [2:0] by;
     wire       bdx, bdy;
     wire       gol_j1, gol_j2, rebote_paleta, rebote_pared;
@@ -142,7 +162,7 @@ module pong_top #(
         .subir(j2_subir), .bajar(j2_bajar), .yp(yp2)
     );
 
-    pelota #(.LP(LP)) u_pelota (
+    pelota #(.LP(LP), .ANCHO(ANCHO)) u_pelota (
         .clk(CLK_SYS), .rst(rst),
         .tick(tick_bola), .habilitar(mover_pelota),
         .saque(saque), .saque_dx(saque_dx), .saque_dy(saque_dy), .saque_y(saque_y),
@@ -181,19 +201,25 @@ module pong_top #(
     // En ESPERA la pelota titila para invitar a presionar START
     wire mostrar_pelota = (estado != ESPERA) | parpadeo;
 
-    wire [127:0] img, bytes;
+    wire [8*ANCHO-1:0] img, bytes;
+
+    // Patrón de calibración: fijo por parámetro o mientras RESET esté
+    // presionado. Así, en el laboratorio, basta con sostener RESET para ver
+    // si alguna matriz quedó girada o en otro orden.
+    wire modo_prueba = (PATRON_PRUEBA != 0) | reset_juego;
 
     imagen #(
-        .LP(LP), .TRANSPONER(TRANSPONER), .INV_BITS(INV_BITS), .INV_DIGITOS(INV_DIGITOS)
+        .LP(LP), .ANCHO(ANCHO),
+        .TRANSPONER(TRANSPONER), .INV_BITS(INV_BITS), .INV_DIGITOS(INV_DIGITOS)
     ) u_imagen (
         .x(bx), .y(by), .yp1(yp1), .yp2(yp2),
         .mostrar_pelota(mostrar_pelota), .modo_fin(en_fin),
-        .ganador(ganador), .parpadeo(parpadeo),
+        .ganador(ganador), .parpadeo(parpadeo), .modo_prueba(modo_prueba),
         .img(img), .bytes(bytes)
     );
 
     max7219_tx #(
-        .DIV_CLK(DIV_CLK_LED), .MODULO_CERCANO(MODULO_CERCANO)
+        .DIV_CLK(DIV_CLK_LED), .N_CHIPS(N_CHIPS), .MODULO_CERCANO(MODULO_CERCANO)
     ) u_max7219 (
         .clk(CLK_SYS), .rst(por),          // la pantalla no se reinicia con RESET, solo al encender
         .bytes(bytes),

@@ -28,7 +28,12 @@ module modelo_max7219 #(
     input  wire din,
     input  wire clk,
     input  wire load,
-    output reg  dout
+    output reg  dout,
+    // Salidas solo para que el testbench lea el estado sin nombres jerárquicos
+    output wire [63:0] digitos,      // {dígito 8, ..., dígito 1}: el dígito d+1 está en [8d +: 8]
+    output wire [39:0] config_regs,  // {test, scan, decode, brillo, shutdown}
+    output wire [31:0] n_violaciones,
+    output wire [31:0] n_clks_ultima // CLK entre los dos últimos LOAD
 );
 
     reg [15:0] sr = 16'h0000;
@@ -113,5 +118,11 @@ module modelo_max7219 #(
 
     // El chip está mostrando algo solo si salió de shutdown y no está en test
     wire operando = reg_shutdown[0] && !reg_test[0];
+
+    assign digitos       = {digito[8], digito[7], digito[6], digito[5],
+                            digito[4], digito[3], digito[2], digito[1]};
+    assign config_regs   = {reg_test, reg_scan, reg_decode, reg_brillo, reg_shutdown};
+    assign n_violaciones = violaciones;
+    assign n_clks_ultima = clks_ultima;
 
 endmodule

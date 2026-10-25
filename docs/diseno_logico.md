@@ -4,8 +4,9 @@ Este documento reúne las **fichas de bloque** de la Sección XIV de nuestra gu�
 
 Convenciones que usamos en todo el proyecto:
 
-* Coordenadas enteras: `0 ≤ X ≤ 15` (columna), `0 ≤ Y ≤ 7` (fila, **la fila 0 es la de arriba**).
-* Paleta de J1 en la columna 0 y de J2 en la columna 15, descrita por su fila superior `YP` y su longitud `LP = 3`.
+* **Ancho de la cancha:** `ANCHO = 32` con el módulo MAX7219 x4 (decisión D-25) o `ANCHO = 16` con dos matrices sueltas. Escribimos `U = ANCHO − 1` para la última columna y `N = ANCHO / 8` para el número de MAX7219. Todas las tablas valen para los dos casos.
+* Coordenadas enteras: `0 ≤ X ≤ U` (columna), `0 ≤ Y ≤ 7` (fila, **la fila 0 es la de arriba**).
+* Paleta de J1 en la columna 0 y de J2 en la columna U, descrita por su fila superior `YP` y su longitud `LP = 3`.
 * `DX = 1`: la pelota va hacia J2 (derecha). `DY = 1`: la pelota baja.
 * En las ecuaciones, `A'` es el complemento de `A`, `·` es AND y `+` es OR.
 * Todas las señales internas son **activas en alto**; la polaridad física se resuelve en los bordes del diseño.
@@ -36,11 +37,11 @@ flowchart LR
     FSM -- contar, limpiar --> PUN
     PUN -- gana --> FSM
     FSM -- saque, nivel --> PEL
-    PEL --> IMG[imagen.v<br/>8 x 16 + mapeo]
+    PEL --> IMG[imagen.v<br/>8 x ANCHO + mapeo]
     PAL1 --> IMG
     PAL2 --> IMG
     IMG --> TX[max7219_tx.v<br/>FSM serial]
-    TX -- DIN / CLK_LED / LOAD --> MAX[2 x MAX7219<br/>matriz 8 x 16]
+    TX -- DIN / CLK_LED / LOAD --> MAX[modulo MAX7219 x4<br/>4 chips, 8 x 32 LEDs]
     PUN --> SEG[siete_segmentos.v x2]
     SEG --> DISP[2 displays]
 ```
@@ -51,13 +52,14 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
 
 | Variable | Rango | Valores | Bits | Comentario |
 |----------|-------|---------|------|------------|
-| `X` | 0..15 | 16 | 4 | ⌈log₂ 16⌉ = 4 |
+| `X` | 0..U | 32 (o 16) | 5 (o 4) | ⌈log₂ 32⌉ = 5; el parámetro `XB` se calcula solo |
 | `Y` | 0..7 | 8 | 3 | |
 | `YP1`, `YP2` | 0..5 | 6 | 3 | 8 − LP = 5; los códigos 6 y 7 se tratan como inválidos |
 | `DX`, `DY` | ±1 | 2 | 1 + 1 | |
 | `P1`, `P2` | 0..9 | 10 | 4 | un display por jugador |
 | `estado` | 5 estados | 5 | 3 | 101, 110 y 111 sin usar → ESPERA |
 | `golpes` | 0..15 | 16 | 4 | se satura en 15 |
+| Trama serial | 16 · N bits | — | 64 (o 32) | registro de desplazamiento de `max7219_tx` |
 | `nivel` | 0..3 | 4 | 2 | |
 | Divisor de 1 ms | 0..49 999 | 50 000 | 16 (usamos 32) | dejamos 32 para simular con cualquier `CLK_HZ` |
 
@@ -132,7 +134,7 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
 1. **Función:** `colisiones` calcula el siguiente `(X, Y, DX, DY)` y los eventos; `pelota` lo guarda en cada `tick_bola`.
 2. **Requisitos:** R03, R04, R05.
 3. **E/S:** `x[3:0]`, `y[2:0]`, `dx`, `dy`, `yp1`, `yp2` → `x_sig`, `y_sig`, `dx_sig`, `dy_sig`, `impacto_izq`, `impacto_der`, `gol_j1`, `gol_j2`, `rebote_pared`, `fuera`.
-4. **Reloj/reinicio:** `pelota` en `CLK_SYS`; reposo en `X = 7, Y = 3, DX = 1, DY = 1`.
+4. **Reloj/reinicio:** `pelota` en `CLK_SYS`; reposo en `X = ANCHO/2 − 1, Y = 3, DX = 1, DY = 1`.
 5. **Estados:** `X`, `Y`, `DX`, `DY` (9 bits en total).
 6. **Condiciones booleanas:**
 
@@ -140,12 +142,12 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
    cubre1       = (YP1 ≤ Y) · (Y ≤ YP1 + 2)
    cubre2       = (YP2 ≤ Y) · (Y ≤ YP2 + 2)
    borde_izq    = (X = 1)  · DX'
-   borde_der    = (X = 14) · DX
+   borde_der    = (X = U−1) · DX
    impacto_izq  = borde_izq · cubre1
    impacto_der  = borde_der · cubre2
    gol_j2       = borde_izq · cubre1'          (J1 falló)
    gol_j1       = borde_der · cubre2'          (J2 falló)
-   fuera        = (X = 0) + (X = 15)
+   fuera        = (X = 0) + (X = U)
    ```
 
    **Prioridades** cuando varias cosas pasan en el mismo paso:
@@ -155,31 +157,31 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
    3. Al final el rebote con techo o piso sobre `DY_ef`:
       `choca_techo = (Y = 0)·DY_ef'`, `choca_piso = (Y = 7)·DY_ef`.
 
-   **Tabla de eventos** (resumen; `tb_colisiones` la recorre completa, 18 432 casos):
+   **Tabla de eventos** (resumen; `tb_colisiones` la recorre completa: 36 864 casos con 32 columnas y 18 432 con 16):
 
    | Situación | `X⁺` | `DX⁺` | `Y⁺` / `DY⁺` | Evento |
    |-----------|------|-------|--------------|--------|
    | En juego, lejos de bordes | X ± 1 | DX | Y ± 1 (con rebote si toca techo/piso) | `rebote_pared` si aplica |
    | `X = 1`, `DX = 0`, paleta cubre | 2 | 1 | según zona + paredes | `impacto_izq` |
    | `X = 1`, `DX = 0`, paleta no cubre | 0 | 0 | Y ± 1 | `gol_j2` |
-   | `X = 14`, `DX = 1`, paleta cubre | 13 | 0 | según zona + paredes | `impacto_der` |
-   | `X = 14`, `DX = 1`, paleta no cubre | 15 | 1 | Y ± 1 | `gol_j1` |
-   | `X = 0` o `X = 15` | X | DX | Y / DY | `fuera` (congelada) |
+   | `X = U−1`, `DX = 1`, paleta cubre | U−2 | 0 | según zona + paredes | `impacto_der` |
+   | `X = U−1`, `DX = 1`, paleta no cubre | U | 1 | Y ± 1 | `gol_j1` |
+   | `X = 0` o `X = U` | X | DX | Y / DY | `fuera` (congelada) |
 
    **Tabla de transición del registro** (`pelota.v`):
 
    | rst | saque | tick · habilitar | Siguiente estado |
    |:---:|:-----:|:----------------:|------------------|
    | 1 | x | x | reposo |
-   | 0 | 1 | x | saque: `X = 7` si sale a la derecha, `X = 8` si sale a la izquierda |
+   | 0 | 1 | x | saque: `X = ANCHO/2 − 1` si sale a la derecha, `X = ANCHO/2` si sale a la izquierda |
    | 0 | 0 | 1 | salida de `colisiones` |
    | 0 | 0 | 0 | se mantiene |
 
-7. **Por qué no se cuentan goles dobles (R05):** las banderas de evento de `pelota.v` se registran y duran un solo ciclo; después del gol la pelota queda en `X = 0` o `15`, donde `colisiones` ya no genera eventos; y además el marcador solo cuenta en el estado JUEGO, del que la FSM sale en el ciclo siguiente al gol.
+7. **Por qué no se cuentan goles dobles (R05):** las banderas de evento de `pelota.v` se registran y duran un solo ciclo; después del gol la pelota queda en `X = 0` o `X = U`, donde `colisiones` ya no genera eventos; y además el marcador solo cuenta en el estado JUEGO, del que la FSM sale en el ciclo siguiente al gol.
 8. **Diagrama:** registro de 9 bits realimentado a través de la lógica combinacional; un multiplexor elige entre mantener, saque y siguiente.
 9. **Pruebas:** `tb_colisiones` (barrido exhaustivo contra un modelo de referencia escrito de otra forma, más invariantes) y `tb_pelota` (T03: sin tick no se mueve y cada tick avanza exactamente una casilla; T04: techo, piso y ambas paletas; T05: un gol de cada lado sin repetir; prioridad del saque; y 6000 pasos aleatorios contra el modelo con conteo goles = escapes).
 10. **Archivos:** `rtl/colisiones.v`, `rtl/pelota.v`, `tb/tb_colisiones.v`, `tb/tb_pelota.v`, `tb/modelo_referencia.vh`.
-11. **Resultado:** ambos **PASAN** (92 160 y 12 107 verificaciones).
+11. **Resultado:** ambos **PASAN** con 32 y con 16 columnas.
 
 ---
 
@@ -273,10 +275,10 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
    | Señal | Periodo | Ciclos a 50 MHz |
    |-------|---------|-----------------|
    | `tick_1ms` | 1 ms | 50 000 |
-   | `tick_bola`, nivel 0 | 260 ms | 13 000 000 |
-   | `tick_bola`, nivel 1 | 200 ms | 10 000 000 |
-   | `tick_bola`, nivel 2 | 150 ms | 7 500 000 |
-   | `tick_bola`, nivel 3 | 110 ms | 5 500 000 |
+   | `tick_bola`, nivel 0 | 170 ms (260 con 16 col.) | 8 500 000 |
+   | `tick_bola`, nivel 1 | 130 ms (200) | 6 500 000 |
+   | `tick_bola`, nivel 2 | 100 ms (150) | 5 000 000 |
+   | `tick_bola`, nivel 3 | 75 ms (110) | 3 750 000 |
    | `parpadeo` (medio periodo) | 250 ms | 12 500 000 |
 
 7. **Detalle:** `sincronizar` (fuera de JUEGO) mantiene en cero el contador de la pelota, así el primer paso después de un saque o una pausa siempre llega un periodo completo después.
@@ -288,31 +290,52 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
 
 ## Ficha 7 · `imagen.v`
 
-1. **Función:** construir la imagen 8 × 16 y reordenarla según cómo estén soldados los módulos.
+1. **Función:** construir la imagen 8 × ANCHO, reordenarla según cómo estén soldadas las matrices y generar el patrón de calibración.
 2. **Requisito:** R07.
-3. **E/S:** `x`, `y`, `yp1`, `yp2`, `mostrar_pelota`, `modo_fin`, `ganador`, `parpadeo` → `img[127:0]`, `bytes[127:0]`.
+3. **E/S:** `x`, `y`, `yp1`, `yp2`, `mostrar_pelota`, `modo_fin`, `ganador`, `parpadeo`, `modo_prueba` → `img[8·ANCHO−1:0]`, `bytes[8·ANCHO−1:0]` (256 bits con el módulo x4).
 4. Combinacional.
 5. **Regla de encendido:**
 
    ```
    pixel(f, c) = (c = 0)·(YP1 ≤ f ≤ YP1+2)
-               + (c = 15)·(YP2 ≤ f ≤ YP2+2)
+               + (c = U)·(YP2 ≤ f ≤ YP2+2)
                + mostrar_pelota·(c = X)·(f = Y)
-               + modo_fin·parpadeo·[ganador'·(c ≤ 7) + ganador·(c ≥ 8)]
-   img[16·f + c] = pixel(f, c)
+               + modo_fin·parpadeo·[ganador'·(c < ANCHO/2) + ganador·(c ≥ ANCHO/2)]
+   img[ANCHO·f + c] = modo_prueba ? prueba(f, c) : pixel(f, c)
+
+   prueba(f, c) = (f = 0)·(c mod 8 ≤ ⌊c/8⌋ + 1) + (c mod 8 = 0)·(f ≤ 2)
    ```
+
+   El patrón de prueba dibuja una "Γ" por matriz, con la esquina arriba a la izquierda, un brazo vertical de 3 LEDs y uno horizontal de (número de matriz + 2) LEDs. Se ve mientras se sostiene RESET (D-27):
+
+   ```
+   +--------------------------------+
+   |OO......OOO.....OOOO....OOOOO...|
+   |O.......O.......O.......O.......|
+   |O.......O.......O.......O.......|
+   |................................|
+   |................................|
+   |................................|
+   |................................|
+   |................................|
+   +--------------------------------+
+   ```
+
+   Si una matriz se ve girada o en espejo, o los brazos no crecen de izquierda a derecha, se corrige con los parámetros de mapeo y con `MODULO_CERCANO`.
 
 6. **Mapeo de bits** (por defecto): el byte del dígito `d` del módulo `m` es la fila `d`, y su bit 7 es la columna izquierda del módulo:
 
-   `bytes[8·(8m + d) + b] = img[16·d + 8m + (7 − b)]`
+   `bytes[8·(8m + d) + b] = img[ANCHO·d + 8m + (7 − b)]`
 
-   | Módulo | Columnas | Registros | Conectado a |
-   |--------|----------|-----------|-------------|
-   | 0 | 0-7 (J1) | dígitos 1-8 | DIN de la FPGA (cercano) |
-   | 1 | 8-15 (J2) | dígitos 1-8 | DOUT del módulo 0 (lejano) |
+   | Matriz | Columnas | Posición en la cadena (`MODULO_CERCANO = 0`) | (`MODULO_CERCANO = 1`) |
+   |--------|----------|-----------------------------------------------|------------------------|
+   | 0 | 0-7 (lado J1) | chip 0, conectado a DIN de la FPGA | chip 3 (el más lejano) |
+   | 1 | 8-15 | chip 1 | chip 2 |
+   | 2 | 16-23 | chip 2 | chip 1 |
+   | 3 | 24-31 (lado J2) | chip 3 (el más lejano) | chip 0, conectado a DIN |
 
    Con `TRANSPONER`, `INV_BITS` e `INV_DIGITOS` se cubren las 8 orientaciones posibles del módulo sin tocar la lógica.
-7. **Pruebas (T07):** las 4608 escenas posibles de pelota y paletas, los 128 LEDs cada vez; el mapeo por defecto y uno alterno.
+7. **Pruebas (T07):** todas las escenas posibles de pelota y paletas (9216 con 32 columnas), todos los LEDs cada vez; el mapeo por defecto y uno alterno; el patrón de calibración.
 8. **Archivos:** `rtl/imagen.v`, `tb/tb_imagen.v`.
 9. **Resultado:** **PASA**.
 
@@ -320,9 +343,9 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
 
 ## Ficha 8 · `max7219_tx.v`
 
-1. **Función:** enviar configuración e imagen a los dos MAX7219 en cascada.
+1. **Función:** enviar configuración e imagen a los `N` MAX7219 en cascada (4 en el módulo x4).
 2. **Requisito:** R08.
-3. **E/S:** `bytes[127:0]` → `DIN`, `CLK_LED`, `LOAD`.
+3. **E/S:** `bytes[64·N−1:0]` → `DIN`, `CLK_LED`, `LOAD`.
 4. **Reloj/reinicio:** `CLK_SYS`; solo el POR lo reinicia (RESET del juego no apaga la pantalla).
 5. **Registros del MAX7219 que usamos:**
 
@@ -335,7 +358,7 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
    | 0x0C | Shutdown | 0x01 | operación normal |
    | 0x01-0x08 | Dígitos 0-7 | imagen | una fila por dígito |
 
-   **Trama de 32 bits:** `{palabra_chip_lejano[15:0], palabra_chip_cercano[15:0]}`, MSB primero. Cada palabra es `{4'h0, dirección[3:0], dato[7:0]}`.
+   **Trama de 16·N bits** (64 con el módulo x4): `{palabra_chip_N−1, …, palabra_chip_1, palabra_chip_0}`, MSB primero, donde el chip 0 es el conectado a DIN. Lo primero que sale termina en el chip más lejano. Cada palabra es `{4'h0, dirección[3:0], dato[7:0]}`.
 
 6. **FSM del transmisor:**
 
@@ -357,11 +380,11 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
 
    ![Cronograma](img/cronograma_max7219.png)
 
-   DIN cambia cuando CLK_LED **baja** y el chip lo lee cuando CLK_LED **sube**: medio periodo (500 ns) de setup contra los 25 ns que pide la hoja de datos. LOAD sube medio periodo después del último flanco.
+   Es la palabra de brillo `0x0A04` enviada a los cuatro chips del módulo x4. DIN cambia cuando CLK_LED **baja** y el chip lo lee cuando CLK_LED **sube**: medio periodo (500 ns) de setup contra los 25 ns que pide la hoja de datos. LOAD sube medio periodo después del último flanco.
 
-   Tiempo por pantalla: 8 × (32 × 1 µs + 3,5 µs) ≈ 272 µs → unas 3600 pantallas por segundo.
+   Tiempo por pantalla con 4 chips: 8 × (64 × 1 µs + 2 µs) ≈ 528 µs → unas 1900 pantallas por segundo (272 µs y ~3600 con 2 chips).
 
-8. **Pruebas (T08):** dos modelos de MAX7219 en cadena escritos desde la hoja de datos; configuración en ambos chips; 32 bits exactos entre LOAD; cinco patrones conocidos reconstruidos desde los registros; recuperación tras un "reinicio" simulado de U2; ambos valores de `MODULO_CERCANO`; cero violaciones de tiempo.
+8. **Pruebas (T08):** `N` modelos de MAX7219 en cadena escritos desde la hoja de datos; configuración en todos los chips; 16·N bits exactos entre LOAD; cinco patrones conocidos (uno con un LED distinto por matriz para detectar errores de orden) reconstruidos desde los registros; recuperación tras un "reinicio" simulado del chip más lejano; ambos valores de `MODULO_CERCANO`; cero violaciones de tiempo.
 9. **Archivos:** `rtl/max7219_tx.v`, `tb/modelo_max7219.v`, `tb/tb_max7219.v`.
 10. **Resultado:** **PASA**.
 
@@ -412,7 +435,7 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
 
 ## Ficha 10 · `pong_top.v`
 
-1. **Función:** interconexión, POR de 255 ciclos y LEDs de estado de la tarjeta.
+1. **Función:** interconexión, POR de 255 ciclos, LEDs de estado de la tarjeta y selección de periodos según `ANCHO`.
 2. **Requisitos:** todos.
 3. **E/S físicas:**
 
@@ -422,7 +445,7 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
    | `RESET_PIN`, `START_PIN` | in | 1 | pulsadores de la tarjeta (activos en bajo) |
    | `J1_UP`, `J1_DOWN`, `J2_UP`, `J2_DOWN` | in | 1 | datos del receptor RF |
    | `J1_VT`, `J2_VT` | in | 1 | transmisión válida del HT12D |
-   | `DIN`, `CLK_LED`, `LOAD` | out | 1 | hacia los MAX7219 (vía SN74AHCT125) |
+   | `DIN`, `CLK_LED`, `LOAD` | out | 1 | hacia el módulo MAX7219 x4 (vía SN74AHCT125); LOAD va al pin CS |
    | `SEG_J1`, `SEG_J2` | out | 7 | displays `{g..a}` |
    | `LED` | out | 4 | `[0]` jugando, `[1]` pausa, `[2]` enlace J1, `[3]` enlace J2 |
 

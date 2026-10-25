@@ -5,7 +5,8 @@
 // ----------------------------------------------------------------------------
 //  Como colisiones.v es puramente combinacional, nos pudimos dar el lujo de
 //  probarlo de forma EXHAUSTIVA: todas las combinaciones de
-//      X (16) x Y (8) x DX (2) x DY (2) x YP1 (6) x YP2 (6) = 18 432 casos.
+//      X (ANCHO) x Y (8) x DX (2) x DY (2) x YP1 (6) x YP2 (6) casos
+//  (18 432 con 16 columnas y 36 864 con 32).
 //  En cada caso comparamos contra el modelo de referencia y además revisamos
 //  invariantes que tienen que cumplirse siempre:
 //    - nunca hay gol de los dos lados a la vez;
@@ -22,14 +23,14 @@ module tb_colisiones;
 
     localparam integer LP = 3;
 
-    reg  [3:0] x;
+    reg  [XB-1:0] x;
     reg  [2:0] y, yp1, yp2;
     reg        dx, dy;
-    wire [3:0] x_sig;
+    wire [XB-1:0] x_sig;
     wire [2:0] y_sig;
     wire       dx_sig, dy_sig, imp_i, imp_d, g1, g2, pared, fuera;
 
-    colisiones #(.LP(LP)) dut (
+    colisiones #(.LP(LP), .ANCHO(ANCHO)) dut (
         .x(x), .y(y), .dx(dx), .dy(dy), .yp1(yp1), .yp2(yp2),
         .x_sig(x_sig), .y_sig(y_sig), .dx_sig(dx_sig), .dy_sig(dy_sig),
         .impacto_izq(imp_i), .impacto_der(imp_d),
@@ -41,10 +42,10 @@ module tb_colisiones;
     integer casos, n_imp, n_gol, n_pared;
 
     initial begin
-        $display("== tb_colisiones: barrido exhaustivo ==");
+        $display("== tb_colisiones: barrido exhaustivo, %0d columnas ==", ANCHO);
         casos = 0; n_imp = 0; n_gol = 0; n_pared = 0;
 
-        for (ix = 0; ix < 16; ix = ix + 1)
+        for (ix = 0; ix < ANCHO; ix = ix + 1)
         for (iy = 0; iy < 8;  iy = iy + 1)
         for (idx = 0; idx < 2; idx = idx + 1)
         for (idy = 0; idy < 2; idy = idy + 1)

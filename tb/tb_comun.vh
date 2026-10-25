@@ -11,6 +11,16 @@
 integer errores = 0;
 integer pruebas = 0;
 
+// Ancho de la cancha que se simula. Por defecto 32 (módulo MAX7219 x4);
+// el script también corre las pruebas con 16 pasando -DANCHO_PRUEBA=16.
+`ifndef ANCHO_PRUEBA
+  `define ANCHO_PRUEBA 32
+`endif
+localparam integer ANCHO   = `ANCHO_PRUEBA;
+localparam integer XB      = (ANCHO > 16) ? 5 : 4;
+localparam integer N_CHIPS = ANCHO / 8;
+localparam integer ULT     = ANCHO - 1;     // última columna
+
 // Uso: `VERIFICAR(condicion, $sformatf("mensaje %0d", valor))
 // Ojo: comparamos con !== 1 para que una condición en X (señal sin iniciar)
 // cuente como FALLA. Al principio usábamos !(cond) y una X pasaba callada.

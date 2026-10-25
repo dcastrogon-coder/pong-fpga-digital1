@@ -13,7 +13,7 @@
 //
 //  Tabla de transición resumida:
 //     rst | saque | tick·habilitar | siguiente estado
-//      1  |   x   |       x        | posición de reposo (centro)
+//      1  |   x   |       x        | posición de reposo (centro, X = ANCHO/2 - 1)
 //      0  |   1   |       x        | posición de saque (centro, hacia quien perdió)
 //      0  |   0   |       1        | (X,Y,DX,DY) <- salida de colisiones
 //      0  |   0   |       0        | se mantiene
@@ -29,7 +29,9 @@
 `timescale 1ns / 1ps
 
 module pelota #(
-    parameter integer LP = 3
+    parameter integer LP    = 3,
+    parameter integer ANCHO = 32,
+    parameter integer XB    = (ANCHO > 16) ? 5 : 4
 )(
     input  wire       clk,
     input  wire       rst,
@@ -42,7 +44,7 @@ module pelota #(
     input  wire [2:0] yp1,
     input  wire [2:0] yp2,
 
-    output reg  [3:0] x,
+    output reg  [XB-1:0] x,
     output reg  [2:0] y,
     output reg        dx,
     output reg        dy,
@@ -53,12 +55,16 @@ module pelota #(
     output reg        rebote_pared
 );
 
-    wire [3:0] x_sig;
+    wire [XB-1:0] x_sig;
     wire [2:0] y_sig;
     wire       dx_sig, dy_sig;
     wire       imp_i, imp_d, g1, g2, rp, fuera;
 
-    colisiones #(.LP(LP)) u_colisiones (
+    // Las dos columnas del centro: con 16 son la 7 y la 8, con 32 la 15 y la 16
+    localparam [XB-1:0] CENTRO_IZQ = ANCHO/2 - 1;
+    localparam [XB-1:0] CENTRO_DER = ANCHO/2;
+
+    colisiones #(.LP(LP), .ANCHO(ANCHO)) u_colisiones (
         .x(x), .y(y), .dx(dx), .dy(dy),
         .yp1(yp1), .yp2(yp2),
         .x_sig(x_sig), .y_sig(y_sig), .dx_sig(dx_sig), .dy_sig(dy_sig),
@@ -70,7 +76,7 @@ module pelota #(
     always @(posedge clk) begin
         if (rst) begin
             // Al encender la dejamos en el centro, lista para salir hacia J2
-            x  <= 4'd7;
+            x  <= CENTRO_IZQ;
             y  <= 3'd3;
             dx <= 1'b1;
             dy <= 1'b1;
@@ -82,10 +88,11 @@ module pelota #(
             rebote_paleta <= 1'b0; rebote_pared <= 1'b0;
 
             if (saque) begin
-                // Si sale hacia la derecha arranca en la columna 7 y si sale
-                // hacia la izquierda en la 8, para que ambos jugadores tengan
-                // exactamente el mismo tiempo de reacción.
-                x  <= saque_dx ? 4'd7 : 4'd8;
+                // Si sale hacia la derecha arranca en la columna central de la
+                // izquierda y si sale hacia la izquierda en la de la derecha,
+                // para que ambos jugadores tengan exactamente el mismo tiempo
+                // de reacción.
+                x  <= saque_dx ? CENTRO_IZQ : CENTRO_DER;
                 y  <= saque_y;
                 dx <= saque_dx;
                 dy <= saque_dy;

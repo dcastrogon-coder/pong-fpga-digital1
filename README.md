@@ -1,4 +1,4 @@
-# Pong en FPGA con matriz LED 8 × 16 y controles inalámbricos
+# Pong en FPGA con matriz LED 8 × 32 y controles inalámbricos
 
 **Proyecto final · Electrónica Digital 1**
 Universidad Nacional de Colombia, Sede Bogotá · Departamento de Ingeniería Eléctrica y Electrónica
@@ -11,7 +11,7 @@ Universidad Nacional de Colombia, Sede Bogotá · Departamento de Ingeniería El
 
 ![Partida simulada](docs/img/partida_simulada.gif)
 
-*Partida simulada: lo que se ve es el contenido de los registros de dos modelos de MAX7219 después de recibir las tramas seriales de nuestro diseño, es decir, lo que mostrarían los LEDs.*
+*Partida simulada en el módulo de cuatro matrices: lo que se ve es el contenido de los registros de cuatro modelos de MAX7219 después de recibir las tramas seriales de nuestro diseño, es decir, lo que mostrarían los LEDs.*
 
 ---
 
@@ -19,7 +19,7 @@ Universidad Nacional de Colombia, Sede Bogotá · Departamento de Ingeniería El
 
 Un Pong para dos jugadores hecho **solo con lógica digital** (sin Arduino ni ESP32) sobre una FPGA **Intel/Altera Cyclone IV E EP4CE10E22C8N**, descrito en Verilog HDL para Quartus II.
 
-* La cancha es una matriz LED de **8 × 16** armada con dos módulos 8 × 8, cada uno con su **MAX7219**, conectados en cascada.
+* La cancha es el [**módulo matriz LED MAX7219 x4**](https://www.mactronica.com.co/modulo-matriz-led-max7219-x4): cuatro matrices 8 × 8 con cuatro **MAX7219** en cascada en una sola placa, o sea, **8 × 32 LEDs**. El diseño está parametrizado (`ANCHO`), así que también funciona con dos matrices sueltas en 8 × 16, como en la propuesta original.
 * Cada jugador tiene un **control inalámbrico** con dos botones: subir y bajar.
 * El marcador va en **dos displays de siete segmentos**, uno por jugador.
 * START y RESET están en los pulsadores de la tarjeta.
@@ -38,8 +38,8 @@ Por eso este repositorio tiene primero la especificación y las fichas de diseñ
 |------------------|-------------|--------|
 | PC0 | Reglas, parámetros y señales documentados | ✅ [`docs/especificacion.md`](docs/especificacion.md), [`docs/decisiones.md`](docs/decisiones.md) |
 | PC1 | Tablas, expresiones y diagramas por bloque | ✅ [`docs/diseno_logico.md`](docs/diseno_logico.md) |
-| PC2 | Testbenches de cada módulo, incluidos límites y casos anómalos | ✅ 10 testbenches, todos pasan |
-| PC3 | Juego y modelo del MAX7219 coherentes durante una partida | ✅ `tb_integracion`: partida completa, 0 diferencias |
+| PC2 | Testbenches de cada módulo, incluidos límites y casos anómalos | ✅ 10 testbenches, todos pasan con 16 y con 32 columnas |
+| PC3 | Juego y modelo del MAX7219 coherentes durante una partida | ✅ `tb_integracion`: partida completa en 8 × 32 y en 8 × 16, 0 diferencias |
 | PC4 | Síntesis en Quartus, pines, temporización y voltajes | 🟡 Proyecto listo y revisado con Yosys; faltan los pines reales de la tarjeta |
 | PC5 | Montaje progresivo | ⏳ Plan y lista de revisión en [`docs/hardware.md`](docs/hardware.md) |
 | PC6 | Validación final | ⏳ |
@@ -58,8 +58,8 @@ pong-fpga-digital1/
 │   ├── pelota.v              Registro de la pelota
 │   ├── puntaje.v             Marcador 0-9 con saturación
 │   ├── control_juego.v       FSM general (ESPERA, JUEGO, PUNTO, PAUSA, FIN)
-│   ├── imagen.v              Imagen 8 x 16 y mapeo a registros del MAX7219
-│   ├── max7219_tx.v          FSM y transmisor serial para 2 MAX7219
+│   ├── imagen.v              Imagen 8 x ANCHO, mapeo al MAX7219 y patrón de calibración
+│   ├── max7219_tx.v          FSM y transmisor serial para N MAX7219 en cascada
 │   └── siete_segmentos.v     Decodificador del marcador
 ├── tb/                       Bancos de prueba autoverificados
 │   ├── modelo_max7219.v      Modelo del chip escrito desde la hoja de datos
@@ -79,27 +79,24 @@ Necesitamos [Icarus Verilog](https://steveicarus.github.io/iverilog/) (versión 
 
 ```bash
 sudo apt install iverilog gtkwave
-bash sim/correr_todo.sh             # todas las pruebas (~1 minuto)
+bash sim/correr_todo.sh             # todas las pruebas, 16 y 32 columnas (~3 minutos)
+SOLO32=1 bash sim/correr_todo.sh    # solo la versión del módulo x4
 bash sim/correr_todo.sh max7219     # solo una
 gtkwave sim/tb_max7219.vcd          # para ver las ondas
 ```
 
-Salida esperada:
+Salida esperada (resumen):
 
 ```
 ================ RESUMEN ================
-  RESULTADO tb_colisiones: PASA (92160 verificaciones)
-  RESULTADO tb_paletas: PASA (15 verificaciones)
-  RESULTADO tb_pelota: PASA (12107 verificaciones)
-  RESULTADO tb_puntaje: PASA (11 verificaciones)
-  RESULTADO tb_control_juego: PASA (22 verificaciones)
-  RESULTADO tb_entradas: PASA (18 verificaciones)
-  RESULTADO tb_generador_ticks: PASA (8 verificaciones)
-  RESULTADO tb_imagen: PASA (8649 verificaciones)
-  RESULTADO tb_siete_segmentos: PASA (48 verificaciones)
-  RESULTADO tb_max7219: PASA (20 verificaciones)
-  RESULTADO tb_integracion: PASA (26 verificaciones)
-Pasan: 11   Fallan: 0
+  [16 col] RESULTADO tb_colisiones: PASA (92160 verificaciones)
+  ...
+  [32 col] RESULTADO tb_colisiones: PASA (184320 verificaciones)
+  [32 col] RESULTADO tb_paletas: PASA (15 verificaciones)
+  ...
+  [32 col] RESULTADO tb_max7219: PASA (23 verificaciones)
+  [32 col] RESULTADO tb_integracion: PASA (28 verificaciones)
+Pasan: 16   Fallan: 0
 ```
 
 Para regenerar las imágenes de la documentación (necesita Python con Pillow y Matplotlib):
@@ -117,14 +114,17 @@ GitHub corre las mismas pruebas cada vez que subimos cambios (pestaña *Actions*
 2. **Antes de programar**, revisar `quartus/pong.qsf`: los pines de reloj, pulsadores y LEDs son tentativos y los de los periféricos están comentados hasta verificar el esquema de la tarjeta y la tensión de cada banco (ver [`docs/hardware.md`](docs/hardware.md)).
 3. Ajustar en `rtl/pong_top.v` los parámetros de hardware si hace falta (polaridades, orientación de la matriz, modo RF).
 4. *Processing → Start Compilation* y programar con el USB-Blaster.
+5. Con el módulo conectado, **sostener RESET**: cada matriz debe mostrar una "Γ" con la esquina arriba a la izquierda y el brazo horizontal creciendo de izquierda a derecha (2, 3, 4 y 5 LEDs). Si no, se ajustan los parámetros de orientación de la tabla de abajo.
 
 ### Parámetros que se ajustan sin tocar la lógica
 
 | Parámetro | Por defecto | Para qué |
 |-----------|-------------|----------|
+| `ANCHO` | 32 | columnas: 32 con el módulo x4, 16 con dos matrices sueltas |
 | `CLK_HZ` | 50 000 000 | frecuencia real del oscilador |
 | `TRANSPONER`, `INV_BITS`, `INV_DIGITOS` | 0, 0, 0 | orientación de los LEDs dentro de cada módulo |
-| `MODULO_CERCANO` | 0 | qué mitad muestra el módulo conectado a DIN |
+| `MODULO_CERCANO` | 0 | 0: el chip junto al conector de entrada maneja la matriz izquierda; 1: la derecha |
+| `PATRON_PRUEBA` | 0 | 1 = mostrar siempre el patrón de calibración (también aparece mientras se sostiene RESET) |
 | `SEG_ACTIVO_BAJO` | 1 | displays de ánodo común (1) o cátodo común (0) |
 | `CTRL_ACTIVO_BAJO` | 0 | polaridad de las salidas del receptor |
 | `USAR_VT` | 1 | 0 para probar con botones cableados |
@@ -133,7 +133,7 @@ GitHub corre las mismas pruebas cada vez que subimos cambios (pestaña *Actions*
 
 ## Reglas del juego (resumen)
 
-* La pelota se mueve en diagonal; cada 3 rebotes en paleta acelera (260 → 200 → 150 → 110 ms por casilla).
+* La pelota se mueve en diagonal; cada 3 rebotes en paleta acelera (170 → 130 → 100 → 75 ms por casilla en 8 × 32).
 * Si la pelota golpea la fila de arriba de la paleta sale hacia arriba; la de abajo, hacia abajo; el centro conserva la dirección.
 * Si la paleta no cubre la fila de la pelota es punto para el rival. Pausa de 1 s y saque hacia quien perdió.
 * Gana el primero en llegar a 9: su mitad de pantalla y su display titilan.

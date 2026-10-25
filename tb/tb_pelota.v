@@ -26,13 +26,13 @@ module tb_pelota;
     reg        tick = 0, hab = 1, saque = 0, s_dx = 1, s_dy = 1;
     reg  [2:0] s_y = 3;
     reg  [2:0] yp1 = 2, yp2 = 2;
-    wire [3:0] x;
+    wire [XB-1:0] x;
     wire [2:0] y;
     wire       dx, dy, g1, g2, rpal, rpar;
 
     always #10 clk = ~clk;   // 50 MHz, como la tarjeta
 
-    pelota #(.LP(3)) dut (
+    pelota #(.LP(3), .ANCHO(ANCHO)) dut (
         .clk(clk), .rst(rst), .tick(tick), .habilitar(hab),
         .saque(saque), .saque_dx(s_dx), .saque_dy(s_dy), .saque_y(s_y),
         .yp1(yp1), .yp2(yp2),
@@ -49,7 +49,7 @@ module tb_pelota;
     integer   goles_pulsos = 0, escapes = 0;
 
     wire [8:0] est   = {x, y, dx, dy};
-    wire       fuera = (x == 0) || (x == 15);
+    wire       fuera = (x == 0) || (x == ULT);
 
     always @(posedge clk) begin
         if (!rst) begin
@@ -59,12 +59,12 @@ module tb_pelota;
             end
             if (g1 || g2) goles_pulsos = goles_pulsos + 1;
             if (fuera && !fuera_ant) escapes = escapes + 1;
-            // El gol tiene que coincidir con la llegada a la columna 0 o 15
+            // El gol tiene que coincidir con la llegada a la columna 0 o a la última
             if ((g1 || g2) && !(fuera && !fuera_ant)) begin
                 errores = errores + 1;
                 $display("  [FALLA] t=%0t : pulso de gol sin escape", $time);
             end
-            if (g1 && x != 15) begin errores = errores + 1; $display("  [FALLA] gol_j1 con X=%0d", x); end
+            if (g1 && x != ULT) begin errores = errores + 1; $display("  [FALLA] gol_j1 con X=%0d", x); end
             if (g2 && x != 0)  begin errores = errores + 1; $display("  [FALLA] gol_j2 con X=%0d", x); end
         end
         est_ant   <= est;
@@ -118,22 +118,22 @@ module tb_pelota;
     initial begin
         $dumpfile("sim/tb_pelota.vcd");
         $dumpvars(0, tb_pelota);
-        $display("== tb_pelota ==");
+        $display("== tb_pelota (%0d columnas) ==", ANCHO);
 
         repeat (4) @(negedge clk);
         rst = 0;
         repeat (2) @(negedge clk);
-        `VERIFICAR(x == 7 && y == 3 && dx == 1 && dy == 1, "estado de reinicio")
+        `VERIFICAR(x == (ANCHO/2 - 1) && y == 3 && dx == 1 && dy == 1, "estado de reinicio")
 
         // ------------- T03: sin tick no se mueve -------------
         repeat (200) @(negedge clk);
-        `VERIFICAR(x == 7 && y == 3, "la pelota se movio sin tick")
+        `VERIFICAR(x == (ANCHO/2 - 1) && y == 3, "la pelota se movio sin tick")
         dar_tick;
-        `VERIFICAR(x == 8 && y == 4, $sformatf("un tick = una casilla: X=%0d Y=%0d", x, y))
+        `VERIFICAR(x == (ANCHO/2) && y == 4, $sformatf("un tick = una casilla: X=%0d Y=%0d", x, y))
 
         // ------------- habilitar = 0 congela -------------
         hab = 0; dar_tick; dar_tick;
-        `VERIFICAR(x == 8 && y == 4, "se movio con habilitar = 0")
+        `VERIFICAR(x == (ANCHO/2) && y == 4, "se movio con habilitar = 0")
         hab = 1;
 
         // ------------- T04a: rebote en el techo -------------
@@ -152,22 +152,20 @@ module tb_pelota;
         // ------------- T04c: rebote con la paleta de J2 -------------
         // Sacamos hacia J2 y ponemos la paleta justo donde va a llegar.
         sacar(1, 1, 3'd3);
-        for (k = 0; k < 6; k = k + 1) tick_verificado;   // X: 7 -> 13
-        tick_verificado;                                  // X = 14
+        while (x != ULT - 1) tick_verificado;             // hasta la columna vecina a J2
         yp2 = (y >= 1) ? y - 1 : 0;                       // la fila de la pelota queda en el centro de la paleta
         tick_verificado;
-        `VERIFICAR(dx == 0 && x == 13, $sformatf("T04c rebote paleta J2: X=%0d DX=%0d", x, dx))
+        `VERIFICAR(dx == 0 && x == ULT - 2, $sformatf("T04c rebote paleta J2: X=%0d DX=%0d", x, dx))
 
         // ------------- T04d: rebote con la paleta de J1 -------------
-        for (k = 0; k < 11; k = k + 1) tick_verificado;  // X: 13 -> 2
-        tick_verificado;                                  // X = 1
+        while (x != 1) tick_verificado;                   // hasta la columna vecina a J1
         yp1 = (y >= 1) ? ((y - 1 > 5) ? 5 : y - 1) : 0;
         tick_verificado;
         `VERIFICAR(dx == 1 && x == 2, $sformatf("T04d rebote paleta J1: X=%0d DX=%0d", x, dx))
 
         // ------------- T05a: gol de J2 (J1 falla) -------------
         sacar(0, 1, 3'd3);
-        for (k = 0; k < 7; k = k + 1) tick_verificado;   // X: 8 -> 1
+        while (x != 1) tick_verificado;
         yp1 = (y >= 4) ? 0 : 5;                           // quitamos la paleta del camino
         begin : gol_izq
             integer antes;
@@ -181,16 +179,16 @@ module tb_pelota;
 
         // ------------- T05b: gol de J1 (J2 falla) -------------
         sacar(1, 0, 3'd4);
-        for (k = 0; k < 7; k = k + 1) tick_verificado;   // X: 7 -> 14
+        while (x != ULT - 1) tick_verificado;
         yp2 = (y >= 4) ? 0 : 5;
         tick_verificado;
-        `VERIFICAR(x == 15, "T05b gol de J1")
+        `VERIFICAR(x == ULT, "T05b gol de J1")
 
         // ------------- Saque y tick en el mismo ciclo: gana el saque -------------
         @(negedge clk) begin tick = 1; saque = 1; s_dx = 0; s_dy = 0; s_y = 5; end
         @(negedge clk) begin tick = 0; saque = 0; end
         @(negedge clk);
-        `VERIFICAR(x == 8 && y == 5 && dx == 0 && dy == 0, "prioridad del saque sobre el tick")
+        `VERIFICAR(x == (ANCHO/2) && y == 5 && dx == 0 && dy == 0, "prioridad del saque sobre el tick")
 
         // ------------- Partida aleatoria contra el modelo -------------
         $display("  partida aleatoria de 6000 pasos...");
@@ -201,7 +199,7 @@ module tb_pelota;
             k = $random % 3;
             if (k == 1 && yp2 < 5) yp2 = yp2 + 1; else if (k == 2 && yp2 > 0) yp2 = yp2 - 1;
 
-            if (x == 0 || x == 15) begin
+            if (x == 0 || x == ULT) begin
                 tick_verificado;  // un tick extra en la posición de gol
                 sacar($random, $random, 3 + ($random & 1));
             end else begin

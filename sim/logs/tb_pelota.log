@@ -1,8 +1,8 @@
 VCD info: dumpfile sim/tb_pelota.vcd opened for output.
-== tb_pelota ==
+== tb_pelota (32 columnas) ==
   partida aleatoria de 6000 pasos...
-  pulsos de gol: 274   escapes de la pelota: 274
+  pulsos de gol: 138   escapes de la pelota: 138
 ------------------------------------------------------------
-RESULTADO tb_pelota: PASA (12107 verificaciones)
+RESULTADO tb_pelota: PASA (12187 verificaciones)
 ------------------------------------------------------------
-tb/tb_pelota.v:217: $finish called at 510320000 (1ps)
+tb/tb_pelota.v:215: $finish called at 502640000 (1ps)

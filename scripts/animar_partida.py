@@ -77,26 +77,28 @@ def dibujar_display(d, x, y, valor):
 
 
 def dibujar_cuadro(t, est, p1, p2, pix, f_txt, f_peq):
-    paso = 26                 # separación entre LEDs
-    radio = 9
+    cols = len(pix) // 8      # 16 con dos matrices, 32 con el módulo x4
+    n_mod = cols // 8
+    paso = 26 if cols <= 16 else 20   # separación entre LEDs
+    radio = 9 if cols <= 16 else 7
     margen_x, margen_y = 110, 40
-    hueco = 14                # espacio entre los dos módulos 8x8
-    ancho = margen_x * 2 + 16 * paso + hueco
+    hueco = 14 if cols <= 16 else 4   # en el módulo x4 las matrices van casi pegadas
+    ancho = margen_x * 2 + cols * paso + hueco * (n_mod - 1)
     alto = margen_y + 8 * paso + 70
 
     img = Image.new("RGB", (ancho, alto), FONDO)
     d = ImageDraw.Draw(img)
 
-    # Placas de los dos módulos
-    for m in range(2):
+    # Placas de los módulos
+    for m in range(n_mod):
         x0 = margen_x + m * (8 * paso + hueco) - 8
         d.rounded_rectangle((x0, margen_y - 8, x0 + 8 * paso + 2, margen_y + 8 * paso + 2), 6, fill=PLACA)
 
     for f in range(8):
-        for c in range(16):
-            cx = margen_x + c * paso + (hueco if c >= 8 else 0) + paso // 2 - 4
+        for c in range(cols):
+            cx = margen_x + c * paso + hueco * (c // 8) + paso // 2 - 4
             cy = margen_y + f * paso + paso // 2 - 4
-            on = pix[f * 16 + c] == "1"
+            on = pix[f * cols + c] == "1"
             if on:
                 d.ellipse((cx - radio - 3, cy - radio - 3, cx + radio + 3, cy + radio + 3), fill=(120, 25, 20))
                 d.ellipse((cx - radio, cy - radio, cx + radio, cy + radio), fill=LED_ON)
@@ -105,10 +107,10 @@ def dibujar_cuadro(t, est, p1, p2, pix, f_txt, f_peq):
                 d.ellipse((cx - radio, cy - radio, cx + radio, cy + radio), fill=LED_OFF)
 
     # Marcadores a los lados
-    dibujar_display(d, 30, margen_y + 50, p1)
-    dibujar_display(d, ancho - 70, margen_y + 50, p2)
-    d.text((32, margen_y + 10), "J1", font=f_txt, fill=TEXTO)
-    d.text((ancho - 66, margen_y + 10), "J2", font=f_txt, fill=TEXTO)
+    dibujar_display(d, 30, margen_y + 8 * paso // 2 - 40, p1)
+    dibujar_display(d, ancho - 70, margen_y + 8 * paso // 2 - 40, p2)
+    d.text((32, margen_y - 10), "J1", font=f_txt, fill=TEXTO)
+    d.text((ancho - 66, margen_y - 10), "J2", font=f_txt, fill=TEXTO)
 
     # Barra inferior con tiempo y estado
     y_txt = margen_y + 8 * paso + 22
