@@ -1,0 +1,45 @@
+== tb_siete_segmentos ==
+  valor 0  (gfedcba = 0111111)
+      __ 
+     |  |
+     |__|
+  valor 1  (gfedcba = 0000110)
+         
+        |
+        |
+  valor 2  (gfedcba = 1011011)
+      __ 
+      __|
+     |__ 
+  valor 3  (gfedcba = 1001111)
+      __ 
+      __|
+      __|
+  valor 4  (gfedcba = 1100110)
+         
+     |__|
+        |
+  valor 5  (gfedcba = 1101101)
+      __ 
+     |__ 
+      __|
+  valor 6  (gfedcba = 1111101)
+      __ 
+     |__ 
+     |__|
+  valor 7  (gfedcba = 0000111)
+      __ 
+        |
+        |
+  valor 8  (gfedcba = 1111111)
+      __ 
+     |__|
+     |__|
+  valor 9  (gfedcba = 1101111)
+      __ 
+     |__|
+      __|
+------------------------------------------------------------
+RESULTADO tb_siete_segmentos: PASA (48 verificaciones)
+------------------------------------------------------------
+tb/tb_siete_segmentos.v:63: $finish called at 32000 (1ps)

@@ -1,0 +1,7 @@
+VCD info: dumpfile sim/tb_paletas.vcd opened for output.
+== tb_paletas ==
+  pasos registrados: 3 (retardo inicial 180 ms, repeticion 90 ms)
+------------------------------------------------------------
+RESULTADO tb_paletas: PASA (15 verificaciones)
+------------------------------------------------------------
+tb/tb_paletas.v:154: $finish called at 616755000 (1ps)

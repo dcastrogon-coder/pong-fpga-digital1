@@ -1,0 +1,21 @@
+VCD info: dumpfile sim/tb_max7219.vcd opened for output.
+== tb_max7219 ==
+  configuracion recibida por U1 y U2: test=00 scan=07 decode=00 brillo=04 shutdown=01
+  una pantalla completa tarda 272 us (3674 refrescos por segundo)
+  Patron 'diagonal y bordes' reconstruido desde los registros de U1/U2:
+   +----------------+
+   |OOOOOOOOOOOOOOOO|
+   |..OO............|
+   |....OO..........|
+   |......OO........|
+   |........OO......|
+   |..........OO....|
+   |............OO..|
+   |OOOOOOOOOOOOOOOO|
+   +----------------+
+  transferencias revisadas: 280, con longitud distinta de 32 bits: 0
+  violaciones de tiempo detectadas por los modelos: 0
+------------------------------------------------------------
+RESULTADO tb_max7219: PASA (20 verificaciones)
+------------------------------------------------------------
+tb/tb_max7219.v:208: $finish called at 9525690000 (1ps)

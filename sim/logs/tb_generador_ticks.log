@@ -1,0 +1,10 @@
+VCD info: dumpfile sim/tb_generador_ticks.vcd opened for output.
+== tb_generador_ticks ==
+  nivel 0: tick_bola cada 260 ms
+  nivel 1: tick_bola cada 200 ms
+  nivel 2: tick_bola cada 150 ms
+  nivel 3: tick_bola cada 110 ms
+------------------------------------------------------------
+RESULTADO tb_generador_ticks: PASA (8 verificaciones)
+------------------------------------------------------------
+tb/tb_generador_ticks.v:107: $finish called at 3500350000 (1ps)
