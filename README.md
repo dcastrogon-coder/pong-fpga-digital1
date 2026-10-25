@@ -21,8 +21,9 @@ Un Pong para dos jugadores hecho **solo con lógica digital** (sin Arduino ni ES
 
 * La cancha es el [**módulo matriz LED MAX7219 x4**](https://www.mactronica.com.co/modulo-matriz-led-max7219-x4): cuatro matrices 8 × 8 con cuatro **MAX7219** en cascada en una sola placa, o sea, **8 × 32 LEDs**. El diseño está parametrizado (`ANCHO`), así que también funciona con dos matrices sueltas en 8 × 16, como en la propuesta original.
 * Cada jugador tiene un **control inalámbrico** con dos botones: subir y bajar.
-* El marcador va en **dos displays de siete segmentos**, uno por jugador.
-* START y RESET están en los pulsadores de la tarjeta.
+* La FPGA va en la tarjeta **A-C4E6E10**. Su display de 8 dígitos muestra el marcador (un dígito por jugador, en los extremos) y un mensaje de estado en el centro: `HOLA`, `-n1-`, `-GOL`, `PAUS`, `GAnA`.
+* El buzzer de la tarjeta pita en los rebotes y los goles (se apaga con el DIP 1).
+* START y RESET están en los pulsadores K2 y K3 de la tarjeta.
 
 Seguimos al pie de la letra la ruta que propusimos en nuestra guía metodológica:
 
@@ -38,9 +39,9 @@ Por eso este repositorio tiene primero la especificación y las fichas de diseñ
 |------------------|-------------|--------|
 | PC0 | Reglas, parámetros y señales documentados | ✅ [`docs/especificacion.md`](docs/especificacion.md), [`docs/decisiones.md`](docs/decisiones.md) |
 | PC1 | Tablas, expresiones y diagramas por bloque | ✅ [`docs/diseno_logico.md`](docs/diseno_logico.md) |
-| PC2 | Testbenches de cada módulo, incluidos límites y casos anómalos | ✅ 10 testbenches, todos pasan con 16 y con 32 columnas |
+| PC2 | Testbenches de cada módulo, incluidos límites y casos anómalos | ✅ 12 testbenches, todos pasan con 16 y con 32 columnas |
 | PC3 | Juego y modelo del MAX7219 coherentes durante una partida | ✅ `tb_integracion`: partida completa en 8 × 32 y en 8 × 16, 0 diferencias |
-| PC4 | Síntesis en Quartus, pines, temporización y voltajes | 🟡 Proyecto listo y revisado con Yosys; faltan los pines reales de la tarjeta |
+| PC4 | Síntesis en Quartus, pines, temporización y voltajes | 🟡 Pines asignados desde la serigrafía de la A-C4E6E10 y diseño revisado con Yosys; falta compilar en Quartus y confirmar con multímetro los pines del conector |
 | PC5 | Montaje progresivo | ⏳ Plan y lista de revisión en [`docs/hardware.md`](docs/hardware.md) |
 | PC6 | Validación final | ⏳ |
 
@@ -60,7 +61,10 @@ pong-fpga-digital1/
 │   ├── control_juego.v       FSM general (ESPERA, JUEGO, PUNTO, PAUSA, FIN)
 │   ├── imagen.v              Imagen 8 x ANCHO, mapeo al MAX7219 y patrón de calibración
 │   ├── max7219_tx.v          FSM y transmisor serial para N MAX7219 en cascada
-│   └── siete_segmentos.v     Decodificador del marcador
+│   ├── siete_segmentos.v     Decodificador BCD a siete segmentos
+│   ├── caracter_7seg.v       Dígitos y letras (H, L, A, P, U, G, n, -)
+│   ├── display_multiplexado.v Barrido del display de 8 dígitos de la tarjeta
+│   └── sonido.v              Pitidos en el buzzer
 ├── tb/                       Bancos de prueba autoverificados
 │   ├── modelo_max7219.v      Modelo del chip escrito desde la hoja de datos
 │   ├── modelo_referencia.vh  Modelo independiente del movimiento de la pelota
@@ -79,7 +83,7 @@ Necesitamos [Icarus Verilog](https://steveicarus.github.io/iverilog/) (versión 
 
 ```bash
 sudo apt install iverilog gtkwave
-bash sim/correr_todo.sh             # todas las pruebas, 16 y 32 columnas (~3 minutos)
+bash sim/correr_todo.sh             # todas las pruebas, 16 y 32 columnas (~4 minutos)
 SOLO32=1 bash sim/correr_todo.sh    # solo la versión del módulo x4
 bash sim/correr_todo.sh max7219     # solo una
 gtkwave sim/tb_max7219.vcd          # para ver las ondas
@@ -92,11 +96,12 @@ Salida esperada (resumen):
   [16 col] RESULTADO tb_colisiones: PASA (92160 verificaciones)
   ...
   [32 col] RESULTADO tb_colisiones: PASA (184320 verificaciones)
-  [32 col] RESULTADO tb_paletas: PASA (15 verificaciones)
   ...
+  [32 col] RESULTADO tb_display_multiplexado: PASA (68 verificaciones)
+  [32 col] RESULTADO tb_sonido: PASA (12 verificaciones)
   [32 col] RESULTADO tb_max7219: PASA (23 verificaciones)
-  [32 col] RESULTADO tb_integracion: PASA (28 verificaciones)
-Pasan: 16   Fallan: 0
+  [32 col] RESULTADO tb_integracion: PASA (43 verificaciones)
+Pasan: 18   Fallan: 0
 ```
 
 Para regenerar las imágenes de la documentación (necesita Python con Pillow y Matplotlib):
@@ -111,10 +116,10 @@ GitHub corre las mismas pruebas cada vez que subimos cambios (pestaña *Actions*
 ## Cómo compilar en Quartus II
 
 1. Abrir `quartus/pong.qpf`.
-2. **Antes de programar**, revisar `quartus/pong.qsf`: los pines de reloj, pulsadores y LEDs son tentativos y los de los periféricos están comentados hasta verificar el esquema de la tarjeta y la tensión de cada banco (ver [`docs/hardware.md`](docs/hardware.md)).
+2. Los pines de `quartus/pong.qsf` ya corresponden a la tarjeta A-C4E6E10 (tomados de su serigrafía; tabla completa en [`docs/hardware.md`](docs/hardware.md)). Antes de conectar el módulo y los receptores, confirmar con multímetro los nueve pines del conector de expansión.
 3. Ajustar en `rtl/pong_top.v` los parámetros de hardware si hace falta (polaridades, orientación de la matriz, modo RF).
 4. *Processing → Start Compilation* y programar con el USB-Blaster.
-5. Con el módulo conectado, **sostener RESET**: cada matriz debe mostrar una "Γ" con la esquina arriba a la izquierda y el brazo horizontal creciendo de izquierda a derecha (2, 3, 4 y 5 LEDs). Si no, se ajustan los parámetros de orientación de la tabla de abajo.
+5. En el display de la tarjeta debe aparecer `0 HOLA 0`. Con el módulo conectado, **sostener RESET** (o poner el DIP 2 en ON): cada matriz debe mostrar una "Γ" con la esquina arriba a la izquierda y el brazo horizontal creciendo de izquierda a derecha (2, 3, 4 y 5 LEDs). Si no, se ajustan los parámetros de orientación de la tabla de abajo.
 
 ### Parámetros que se ajustan sin tocar la lógica
 
@@ -125,7 +130,8 @@ GitHub corre las mismas pruebas cada vez que subimos cambios (pestaña *Actions*
 | `TRANSPONER`, `INV_BITS`, `INV_DIGITOS` | 0, 0, 0 | orientación de los LEDs dentro de cada módulo |
 | `MODULO_CERCANO` | 0 | 0: el chip junto al conector de entrada maneja la matriz izquierda; 1: la derecha |
 | `PATRON_PRUEBA` | 0 | 1 = mostrar siempre el patrón de calibración (también aparece mientras se sostiene RESET) |
-| `SEG_ACTIVO_BAJO` | 1 | displays de ánodo común (1) o cátodo común (0) |
+| `SEG_ACTIVO_BAJO`, `DIG_ACTIVO_BAJO` | 1, 1 | polaridad de segmentos y dígitos del display de la tarjeta |
+| `BUZZER_ACTIVO_BAJO`, `LED_ACTIVO_BAJO`, `SW_ACTIVO_BAJO` | 1, 1, 1 | polaridad del buzzer, los LEDs y el DIP |
 | `CTRL_ACTIVO_BAJO` | 0 | polaridad de las salidas del receptor |
 | `USAR_VT` | 1 | 0 para probar con botones cableados |
 | `PAUSAR_SIN_ENLACE` | 1 | 0 si los transmisores solo emiten al presionar |

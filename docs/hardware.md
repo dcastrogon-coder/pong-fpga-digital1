@@ -1,17 +1,62 @@
 # Interfaz eléctrica y montaje (Fase 5 · R10 · T10)
 
-> Esta parte **no se puede verificar en simulación**. Lo que sigue es el plan de conexión y la lista de revisión que tenemos que cumplir antes de conectar cualquier periférico a la FPGA. Los valores marcados con ⚠ dependen de hardware que todavía no tenemos en la mano.
+> Esta parte **no se puede verificar en simulación**. Lo que sigue es el plan de conexión y la lista de revisión que tenemos que cumplir antes de conectar cualquier periférico a la FPGA. Los valores marcados con ⚠ dependen de hardware que todavía no hemos medido.
+
+## 0. La tarjeta: A-C4E6E10
+
+Es una tarjeta de desarrollo con la **EP4CE10E22C8N** (la serigrafía dice "E6/E10" porque sirve para las dos variantes). Lo que trae y cómo lo usamos:
+
+| Recurso de la tarjeta | Pines (serigrafía) | Uso en el proyecto |
+|-----------------------|--------------------|--------------------|
+| Oscilador 50 MHz (CLK_50M) | P23 | `CLK_SYS` |
+| Reloj de usuario (CLK_USER) | P24 | sin usar |
+| Pulsador K1 | nCONFIG | reprograma la FPGA: **no tocar durante la partida** |
+| Pulsador K2 | P90 | `START_PIN` |
+| Pulsador K3 | P91 | `RESET_PIN` (sostenido = patrón de calibración) |
+| Pulsadores K4 / K5 | P87 (DEV-CLR) / P86 (DEV-OE) | sin usar; dejamos apagadas esas funciones en el `.qsf` |
+| Display de 8 dígitos ("Nixie Tube"), segmentos | A P127, B P126, C P125, D P124, E P121, F P120, G P119, H P115 | `SEG[0..7]`: marcador y mensajes |
+| Display de 8 dígitos, habilitación | BIT0 P128, BIT1 P129, BIT2 P132, BIT3 P133, BIT4 P135, BIT5 P136, BIT6 P137, BIT7 P138 | `DIG[0..7]` (BIT0 = derecha) |
+| Buzzer (BELL) | P141 | `BUZZER` |
+| DIP SW (8 interruptores) | P58, P59, P60, P64, P65, P66, P67, P68 | SW1 (P58) = sonido, SW2 (P59) = patrón de calibración |
+| LEDs D3-D14 | D3 P72, D4 P73, D5 P74, D6 P80, D7 P83, D8 P84, D9 P77, D10 P76, D11 P75, D12 P71, D13 P70, D14 P69 | D3 jugando, D4 pausa, D5 enlace J1, D6 enlace J2 |
+| Conector de expansión (3,3 V) | arriba: P28 P31 P33 P38 P43 P46 P50 P51 P53 P55 P88; abajo: P30 P32 P34 P39 P42 P44 P49 P52 P54 P89 | MAX7219 y receptores RF (ver abajo) |
+| VGA, PS/2, LCD1602/12864, EEPROM 24C04, CH340 (USB-serial) | ver serigrafía | sin usar |
+
+Pines que usamos del conector de expansión:
+
+| Señal | Pin | Fila | Va a |
+|-------|-----|------|------|
+| `DIN` | P28 | arriba | SN74AHCT125 1A |
+| `CLK_LED` | P31 | arriba | SN74AHCT125 2A |
+| `LOAD` | P33 | arriba | SN74AHCT125 3A |
+| `J1_UP` | P30 | abajo | receptor J1, D8 |
+| `J1_DOWN` | P32 | abajo | receptor J1, D9 |
+| `J1_VT` | P34 | abajo | receptor J1, VT |
+| `J2_UP` | P42 | abajo | receptor J2, D8 |
+| `J2_DOWN` | P44 | abajo | receptor J2, D9 |
+| `J2_VT` | P49 | abajo | receptor J2, VT |
+
+Los escogimos juntos para que el cableado quede ordenado: el MAX7219 en los tres primeros pines de arriba y cada jugador en un bloque de tres pines abajo, con un GND cerca.
+
+Cosas a tener en cuenta de esta tarjeta:
+
+* **Los pines los leímos de la serigrafía en una foto.** Antes de conectar, confirmar con el multímetro (continuidad desde el pin del conector hasta la pata del chip) al menos los nueve del conector.
+* El conector solo tiene **3,3 V y GND**; no hay 5 V. El módulo MAX7219 x4 se alimenta con fuente aparte y se unen las tierras.
+* La tarjeta advierte *"If you use mini USB, don't use DC5V input"*: alimentarla por una sola de las dos entradas.
+* El cristal de 12 MHz que se ve en la placa es del CH340 (USB-serial), no de la FPGA.
+* Con el display de la tarjeta ya no hacen falta displays externos: eso nos ahorra 14 pines, 14 resistencias y una compra (D-28).
+* Polaridades que **suponemos** y que hay que confirmar en la prueba física #3: segmentos y dígitos del display activos en bajo (ánodo común con transistores PNP Q50-Q57), buzzer y LEDs activos en bajo, DIP en 0 cuando está en ON. Todo se corrige con parámetros de `pong_top`.
+
 
 ## 1. Niveles lógicos
 
-La Cyclone IV E trabaja sus E/S en el estándar que tenga cada banco; en las tarjetas de desarrollo comunes los bancos del conector de expansión van a **3,3 V LVTTL**. Los pines de la Cyclone IV **no toleran 5 V**, así que la regla de oro del proyecto es: *nada de 5 V entra a un pin de la FPGA*.
+La Cyclone IV E trabaja sus E/S en el estándar que tenga cada banco; en la A-C4E6E10 el conector de expansión es de **3,3 V LVTTL** (así lo marca la serigrafía). Los pines de la Cyclone IV **no toleran 5 V**, así que la regla de oro del proyecto es: *nada de 5 V entra a un pin de la FPGA*.
 
 | Línea | Sentido | Lado FPGA | Lado periférico | Solución |
 |-------|---------|-----------|-----------------|----------|
 | DIN, CLK_LED, LOAD | FPGA → módulo x4 | 3,3 V | MAX7219 a 5 V: necesita V_IH ≥ 3,5 V | **SN74AHCT125** alimentado a 5 V (entradas TTL: V_IH = 2 V, salida de 5 V) |
 | J1/J2 UP, DOWN, VT | receptor → FPGA | 3,3 V | HT12D a 5 V saca 5 V | **SN74LVC245A** alimentado a 3,3 V (entradas toleran 5 V) o divisor 1 kΩ / 2 kΩ por línea ⚠ |
-| SEG_J1, SEG_J2 | FPGA → display | 3,3 V | LED rojo, V_F ≈ 1,8 V | resistencia de 330 Ω por segmento: (3,3 − 1,8) / 330 ≈ 4,5 mA |
-| LED[3:0] | FPGA → LEDs tarjeta | 3,3 V | ya en la tarjeta | nada |
+| SEG, DIG, BUZZER, LED | FPGA → periféricos de la tarjeta | 3,3 V | ya en la tarjeta, con sus resistencias y transistores | nada |
 
 Por qué el SN74AHCT125 y no conectar directo: el MAX7219 pide V_IH mínimo de 3,5 V con 5 V de alimentación; un 3,3 V de la FPGA queda por debajo y funcionaría "a veces", que es lo peor que puede pasar en una demostración. El '125 tiene 4 compuertas: usamos 3 y la cuarta queda con su entrada a tierra y su /OE en alto.
 
@@ -52,7 +97,7 @@ Nuestra propuesta, pendiente de comprar y probar:
 * **Frecuencias distintas:** con modulación ASK dos transmisores en la misma frecuencia **se interfieren** cuando emiten al tiempo, aunque tengan direcciones distintas. Por eso recomendamos **315 MHz para J1 y 433 MHz para J2**.
 * **Modo de transmisión:** si el TE del HT12E va a tierra (transmite todo el tiempo), VT = 1 significa enlace y dejamos `PAUSAR_SIN_ENLACE = 1`. Si el transmisor solo emite mientras se presiona, VT vuelve a 0 en reposo, y hay que poner `PAUSAR_SIN_ENLACE = 0` (D-24).
 * **Polaridad:** si las salidas del HT12D quedan en 0 al presionar (depende de cómo cableemos el HT12E), cambiar `CTRL_ACTIVO_BAJO = 1`.
-* **Sin RF todavía:** para la prueba física #4 se pueden usar los pulsadores de la tarjeta con `USAR_VT = 0` y `CTRL_ACTIVO_BAJO = 1` (ver comentario en `quartus/pong.qsf`).
+* **Sin RF todavía:** para la prueba física #4 se conectan cuatro pulsadores entre los pines de los jugadores y GND, con `USAR_VT = 0`, `CTRL_ACTIVO_BAJO = 1` y los pull-up internos que están comentados en `quartus/pong.qsf`. Los pulsadores K2 y K3 de la tarjeta ya están ocupados con START y RESET.
 
 ## 4. Presupuesto de corriente (5 V) ⚠
 
@@ -68,24 +113,25 @@ Estimación a confirmar con multímetro (prueba física #2 con "todo encendido")
 
 Con una fuente de **5 V / 2 A** quedamos cubiertos incluso si alguien sube el brillo al máximo. Un puerto USB de computador (500 mA) alcanza para jugar con el brillo de fábrica (0x04), pero no para el patrón "todo encendido" con brillo alto. No alimentar el módulo desde el regulador de la tarjeta FPGA.
 
-Los displays de marcador se alimentan desde 3,3 V: 14 segmentos × 4,5 mA ≈ 63 mA en el peor caso (dos "8"), repartidos entre pines de bancos distintos para no pasar el límite por banco ⚠.
+El display de 8 dígitos, el buzzer y los LEDs van por la alimentación de la propia tarjeta; como el display está multiplexado, solo hay un dígito encendido a la vez.
 
 ## 5. Lista de revisión T10 (antes de PC4)
 
-- [ ] Esquema de la tarjeta: reloj (pin y frecuencia), pulsadores, LEDs y conector de expansión.
+- [x] Tarjeta identificada (A-C4E6E10) y pines tomados de la serigrafía.
+- [ ] Continuidad de los nueve pines del conector de expansión que usamos.
 - [ ] Tensión de cada banco usado (VCCIO) medida con multímetro.
 - [ ] Pines elegidos en `quartus/pong.qsf` y reporte de pines de Quartus revisado.
 - [ ] '125 alimentado a 5 V y verificado con la FPGA sin módulos conectados (salida en 5 V con osciloscopio).
 - [ ] Ninguna línea de 5 V llega a la FPGA (medir cada entrada con el receptor encendido).
 - [ ] Tierras comunes.
 - [ ] Corriente total medida con todo encendido. El peor caso real es el modo *display test* del MAX7219 (256 LEDs a brillo máximo); para medirlo basta cambiar temporalmente la palabra `0x0F00` por `0x0F01` en `max7219_tx.v`.
-- [ ] Resistencias de los displays y corriente por banco.
+- [ ] Polaridad del display de 8 dígitos, buzzer, LEDs y DIP confirmada (prueba física #3).
 
 ## 6. Secuencia física de pruebas (de la guía, Sección X-B)
 
-1. Tarjeta sola: verificar alimentación, programar y ver los LEDs de estado.
+1. Tarjeta sola: verificar alimentación, programar y ver los LEDs de estado. El display debe decir `0 HOLA 0`.
 2. Módulo x4 conectado y RESET sostenido: el patrón de calibración debe verse como en la ficha 7 de `diseno_logico.md`. Aquí se ajustan `TRANSPONER`, `INV_BITS`, `INV_DIGITOS` y `MODULO_CERCANO`. Al soltar RESET y presionar START, la escena de juego debe parecerse a `docs/img/pantalla_simulada.png`.
-3. Un dígito correcto en cada display de marcador (ajustar `SEG_ACTIVO_BAJO`).
-4. Los cuatro comandos con los pulsadores de la tarjeta (`USAR_VT = 0`).
+3. Display de la tarjeta: con el DIP 2 en ON deben verse los ocho `8.` encendidos; con el DIP 1 en ON y una partida, el buzzer debe pitar en cada rebote. Si el display se ve "al revés" (todo encendido menos lo que debería), cambiar `SEG_ACTIVO_BAJO` o `DIG_ACTIVO_BAJO`.
+4. Los cuatro comandos con pulsadores conectados al conector de expansión (`USAR_VT = 0`, `CTRL_ACTIVO_BAJO = 1`, ver comentario en `quartus/pong.qsf`).
 5. Receptores inalámbricos, incluyendo apagar un transmisor para probar la pérdida de enlace.
 6. Partidas completas, registrando fallos y comparando contra los requisitos.

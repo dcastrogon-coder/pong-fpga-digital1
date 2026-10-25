@@ -18,7 +18,8 @@ yosys -p "read_verilog rtl/*.v; synth_intel -family cycloneive -top pong_top; st
 echo "Latches inferidos:"
 grep -c "Latch inferred" sim/logs/sintesis_yosys.log || true
 echo
-sed -n '/^14. Printing statistics/,/^End of script/p' sim/logs/sintesis_yosys.log \
-    | grep -E "cycloneive_lcell_comb|dffeas|Number of cells"
+# Nos quedamos con las estadísticas finales (el número de la sección cambia
+# según los pasos que haga Yosys, por eso tomamos las últimas líneas).
+grep -E "cycloneive_lcell_comb|dffeas|Number of cells" sim/logs/sintesis_yosys.log | tail -3
 echo
 echo "La EP4CE10E22C8N tiene 10 320 elementos lógicos."

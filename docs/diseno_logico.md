@@ -42,8 +42,11 @@ flowchart LR
     PAL2 --> IMG
     IMG --> TX[max7219_tx.v<br/>FSM serial]
     TX -- DIN / CLK_LED / LOAD --> MAX[modulo MAX7219 x4<br/>4 chips, 8 x 32 LEDs]
-    PUN --> SEG[siete_segmentos.v x2]
-    SEG --> DISP[2 displays]
+    PUN --> DM[display_multiplexado.v<br/>caracter_7seg.v]
+    FSM --> DM
+    DM --> DISP[display de 8 digitos<br/>de la tarjeta]
+    PEL -- rebotes, gol --> SON[sonido.v]
+    SON --> BUZ[buzzer]
 ```
 
 ### Anchos de registro
@@ -392,7 +395,7 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
 
 ## Ficha 9 · `siete_segmentos.v`
 
-1. **Función:** decodificador BCD a siete segmentos para el marcador.
+1. **Función:** decodificador BCD a siete segmentos. Desde D-28 ya no maneja displays externos: lo usa `caracter_7seg.v` para los dígitos del display de la tarjeta.
 2. **Requisito:** R06.
 3. **E/S:** `valor[3:0]`, `apagar` → `seg[6:0] = {g, f, e, d, c, b, a}`.
 4. Combinacional.
@@ -446,8 +449,81 @@ Los anchos salen del rango que tiene que representar cada variable, no de la int
    | `J1_UP`, `J1_DOWN`, `J2_UP`, `J2_DOWN` | in | 1 | datos del receptor RF |
    | `J1_VT`, `J2_VT` | in | 1 | transmisión válida del HT12D |
    | `DIN`, `CLK_LED`, `LOAD` | out | 1 | hacia el módulo MAX7219 x4 (vía SN74AHCT125); LOAD va al pin CS |
-   | `SEG_J1`, `SEG_J2` | out | 7 | displays `{g..a}` |
-   | `LED` | out | 4 | `[0]` jugando, `[1]` pausa, `[2]` enlace J1, `[3]` enlace J2 |
+   | `SW_SONIDO`, `SW_PRUEBA` | in | 1 | DIP SW1 y SW2 |
+   | `SEG` | out | 8 | segmentos `{H,G,F,E,D,C,B,A}` del display de la tarjeta |
+   | `DIG` | out | 8 | habilitación BIT7..BIT0 (BIT0 = derecha) |
+   | `BUZZER` | out | 1 | buzzer de la tarjeta |
+   | `LED` | out | 4 | D3 jugando, D4 pausa, D5 enlace J1, D6 enlace J2 |
 
 4. **Pruebas:** `tb_integracion` juega una partida entera de extremo a extremo.
 5. **Resultado:** **PASA** (ver `docs/verificacion.md`).
+
+---
+
+## Ficha 11 · `display_multiplexado.v` + `caracter_7seg.v`
+
+1. **Función:** mostrar el marcador y un mensaje de estado en el display de 8 dígitos de la tarjeta A-C4E6E10.
+2. **Requisito:** R06.
+3. **E/S:** `caracteres[39:0]` (8 códigos de 5 bits), `apagar[7:0]`, `punto[7:0]` → `seg[7:0]`, `dig[7:0]`.
+4. **Reloj/reinicio:** `CLK_SYS`; solo el POR.
+5. **Estados:** `pos[2:0]` (dígito activo) y un contador de ciclos dentro del turno.
+6. **Contenido del display** (lo arma `pong_top`):
+
+   | BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0 |
+   |:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+   | P1 | | c5 | c4 | c3 | c2 | | P2 |
+
+   | Estado | c5 c4 c3 c2 | Extra |
+   |--------|:-----------:|-------|
+   | ESPERA | `H O L A` | |
+   | JUEGO | `- n k -` | k = nivel de velocidad + 1 (1..4) |
+   | PUNTO | `- G O L` | |
+   | PAUSA | `P A U S` | |
+   | FIN | `G A n A` | el puntaje del ganador titila a 2 Hz |
+   | calibración | `8.8.8.8.8.8.8.8.` | todos los segmentos, para ver si alguno está dañado |
+
+   **Tabla de caracteres** (lógica positiva, `{g,f,e,d,c,b,a}`):
+
+   | Código | Símbolo | g f e d c b a |
+   |:------:|:-------:|:-------------:|
+   | 0-9 | dígitos | tabla de la ficha 9 |
+   | 10 | H | 1 1 1 0 1 1 0 |
+   | 11 | L | 0 1 1 1 0 0 0 |
+   | 12 | A | 1 1 1 0 1 1 1 |
+   | 13 | P | 1 1 1 0 0 1 1 |
+   | 14 | U | 0 1 1 1 1 1 0 |
+   | 15 | G | 0 1 1 1 1 0 1 |
+   | 16 | n | 1 0 1 0 1 0 0 |
+   | 17 | - | 1 0 0 0 0 0 0 |
+   | 18-31 | vacío | 0 0 0 0 0 0 0 |
+
+   La "O" es el 0 y la "S" es el 5.
+
+7. **Barrido (tabla de transición):** cada `T_DIGITO` = 0,5 ms, `pos⁺ = pos + 1 (mód 8)`. Durante los primeros 20 µs de cada turno `dig = 0` (hueco antifantasma). Fuera del hueco: `dig = 1 << pos` si `apagar[pos] = 0`, y `seg = {punto[pos], car7seg(car[pos])}`. Las salidas se registran y luego se aplica la polaridad.
+
+   Frecuencia de refresco: 1 / (8 × 0,5 ms) = **250 Hz**.
+8. **Pruebas:** los 32 códigos de `caracter_7seg`; con reloj de 1 MHz: nunca dos dígitos encendidos, contenido de cada dígito "visto" como lo vería el ojo, hueco ≥ 20 µs, periodo de 4 ms exacto, dígito apagado que no se enciende y patrón de prueba. El registro dibuja el display en ASCII.
+9. **Archivos:** `rtl/display_multiplexado.v`, `rtl/caracter_7seg.v`, `tb/tb_display_multiplexado.v`.
+10. **Resultado:** **PASA**.
+
+---
+
+## Ficha 12 · `sonido.v`
+
+1. **Función:** pitidos del juego en el buzzer de la tarjeta.
+2. **E/S:** `ev_pared`, `ev_paleta`, `ev_gol`, `ev_fin`, `habilitar`, `tick_1ms` → `buzzer`.
+3. **Estados:** `prioridad[2:0]` (0 = silencio), `nota[1:0]`, `restante_ms`, contador de medio periodo y `onda`.
+4. **Tabla de sonidos:**
+
+   | Evento | Prioridad | Frecuencia | Duración | Medio periodo a 50 MHz |
+   |--------|:---------:|-----------|----------|-----------------------:|
+   | Rebote en pared | 1 | 1760 Hz | 25 ms | 14 204 ciclos |
+   | Rebote en paleta | 2 | 880 Hz | 50 ms | 28 409 ciclos |
+   | Gol | 3 | 220 Hz | 400 ms | 113 636 ciclos |
+   | Fin de partida | 4 | 523 → 659 → 784 → 1047 Hz | 4 × 120 ms | 47 801 → 23 877 ciclos |
+
+5. **Transición:** un evento arranca su sonido si su prioridad es mayor o igual a la del que está sonando; si no, se ignora. Mientras suena, la onda se invierte cada medio periodo y `restante_ms` baja con `tick_1ms`; al llegar a cero se pasa a la siguiente nota (solo en la melodía de fin) o al silencio.
+6. **Ecuación de salida:** `buzzer = (habilitar · sonando · onda)` con la polaridad del parámetro.
+7. **Pruebas:** frecuencia (±2 %) y duración (±1 ms) de cada sonido medidas sobre la salida, melodía de fin completa, un rebote no corta el gol, el fin sí lo corta, y silencio total con el interruptor apagado.
+8. **Archivos:** `rtl/sonido.v`, `tb/tb_sonido.v`.
+9. **Resultado:** **PASA**.

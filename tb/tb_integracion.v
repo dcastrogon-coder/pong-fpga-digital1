@@ -51,7 +51,9 @@ module tb_integracion;
     reg start_n = 1, reset_n = 1;
 
     wire din, sclk, load;
-    wire [6:0] seg1, seg2;
+    wire [7:0] seg, dig7;      // display de 8 dígitos de la tarjeta (activos en bajo)
+    wire       buzzer;
+    reg        sw_sonido_n = 0, sw_prueba_n = 1;   // DIP: 0 = ON
     wire [3:0] led;
 
     pong_top #(
@@ -65,7 +67,8 @@ module tb_integracion;
         .J1_UP(j1u), .J1_DOWN(j1d), .J2_UP(j2u), .J2_DOWN(j2d),
         .J1_VT(vt1), .J2_VT(vt2),
         .DIN(din), .CLK_LED(sclk), .LOAD(load),
-        .SEG_J1(seg1), .SEG_J2(seg2), .LED(led)
+        .SW_SONIDO(sw_sonido_n), .SW_PRUEBA(sw_prueba_n),
+        .SEG(seg), .DIG(dig7), .BUZZER(buzzer), .LED(led)
     );
 
     // Cadena de MAX7219: el chip 0 (cercano) maneja la matriz izquierda
@@ -253,24 +256,67 @@ module tb_integracion;
         end
     end
 
-    // Decodificación de displays (ánodo común: activo en bajo)
+    // ------------------------------------------------------------------
+    // Display de 8 dígitos de la tarjeta
+    // ------------------------------------------------------------------
+    // Tabla independiente de la del RTL: {g,f,e,d,c,b,a} en lógica positiva
     function [6:0] patron7;
-        input [3:0] v;
+        input [4:0] v;
         begin
             case (v)
                 0: patron7 = 7'b0111111; 1: patron7 = 7'b0000110; 2: patron7 = 7'b1011011;
                 3: patron7 = 7'b1001111; 4: patron7 = 7'b1100110; 5: patron7 = 7'b1101101;
                 6: patron7 = 7'b1111101; 7: patron7 = 7'b0000111; 8: patron7 = 7'b1111111;
-                9: patron7 = 7'b1101111; default: patron7 = 7'b1000000;
+                9: patron7 = 7'b1101111;
+                10: patron7 = 7'b1110110; 11: patron7 = 7'b0111000; 12: patron7 = 7'b1110111;
+                13: patron7 = 7'b1110011; 14: patron7 = 7'b0111110; 15: patron7 = 7'b0111101;
+                16: patron7 = 7'b1010100; 17: patron7 = 7'b1000000;
+                default: patron7 = 7'b0000000;
             endcase
         end
     endfunction
 
-    integer seg_malos = 0;
+    // "Ojo": lo último que se vio en cada dígito (lógica positiva, con punto)
+    reg [7:0] visto7 [0:7];
+    integer   dobles7 = 0, seg_malos = 0, j7, n7;
+    reg [3:0] p1_d = 0, p2_d = 0;
+    always @(posedge clk) begin p1_d <= p1; p2_d <= p2; end
+
     always @(negedge clk) begin
-        if (estado != FIN && !dut.rst) begin
-            if (seg1 !== ~patron7(p1) || seg2 !== ~patron7(p2)) seg_malos = seg_malos + 1;
+        n7 = 0;
+        for (j7 = 0; j7 < 8; j7 = j7 + 1)
+            if (!dig7[j7]) begin n7 = n7 + 1; visto7[j7] = ~seg; end
+        if (n7 > 1) dobles7 = dobles7 + 1;
+        // El marcador tiene que coincidir en todo momento (fuera de FIN, donde titila,
+        // y del patrón de prueba). Comparamos con el puntaje de un ciclo antes porque
+        // las salidas del display están registradas.
+        if (!dut.rst && estado != FIN && !dut.modo_prueba) begin
+            if (!dig7[7] && (~seg[6:0]) !== patron7(p1_d)) seg_malos = seg_malos + 1;
+            if (!dig7[0] && (~seg[6:0]) !== patron7(p2_d)) seg_malos = seg_malos + 1;
         end
+    end
+
+    // Revisa que el display muestre "P1 _ c5 c4 c3 c2 _ P2"
+    task revisar_display;
+        input [4:0] c5, c4, c3, c2;
+        input [8*24-1:0] nombre;
+        reg ok;
+        begin
+            esperar_ms(10);   // un par de vueltas del barrido
+            ok = (visto7[7][6:0] == patron7(p1)) && (visto7[0][6:0] == patron7(p2)) &&
+                 (visto7[6] == 8'h00) && (visto7[1] == 8'h00) &&
+                 (visto7[5][6:0] == patron7(c5)) && (visto7[4][6:0] == patron7(c4)) &&
+                 (visto7[3][6:0] == patron7(c3)) && (visto7[2][6:0] == patron7(c2));
+            `VERIFICAR(ok, $sformatf("display de la tarjeta en %0s", nombre))
+        end
+    endtask
+
+    // Cuenta los flancos del buzzer
+    integer pitidos = 0;
+    reg buzzer_ant = 1;
+    always @(posedge clk) begin
+        if (!buzzer && buzzer_ant) pitidos = pitidos + 1;
+        buzzer_ant <= buzzer;
     end
 
     // ------------------------------------------------------------------
@@ -317,7 +363,7 @@ module tb_integracion;
         esperar_ms(100);
         `VERIFICAR(estado == ESPERA && p1 == 0 && p2 == 0, "estado de encendido")
         `VERIFICAR(todos_operando(0), "los MAX7219 no quedaron configurados")
-        `VERIFICAR(seg1 === ~patron7(0) && seg2 === ~patron7(0), "displays en 0-0")
+        revisar_display(10, 0, 11, 12, "ESPERA (HOLA)");
         $display("  Pantalla al encender (ESPERA):");
         imprimir(pantalla(0));
 
@@ -325,6 +371,7 @@ module tb_integracion;
         robots_activos = 1;
         presionar_start;
         `VERIFICAR(estado == JUEGO, "START no inicio el juego")
+        revisar_display(17, 16, 1, 17, "JUEGO (-n1-)");
         `VERIFICAR(led[0] == 1'b0, "LED de juego apagado (activo en bajo)")
 
         // ---- 2. Jugamos hasta tener al menos 3 goles ----
@@ -337,6 +384,7 @@ module tb_integracion;
         esperar_ms(150);
         presionar_start;
         `VERIFICAR(estado == PAUSA, "START no pauso")
+        revisar_display(13, 12, 14, 5, "PAUSA (PAUS)");
         x_congelada = bx;
         robots_activos = 0;
         j1u = 1;                                 // aunque presione, no se mueve
@@ -386,6 +434,9 @@ module tb_integracion;
         robots_activos = 0;
         esperar_ms(1000);
         `VERIFICAR(estado == FIN && p1 == esperado1 && p2 == esperado2, "algo cambio en FIN")
+        esperar_ms(5);
+        `VERIFICAR(visto7[5][6:0] == patron7(15) && visto7[4][6:0] == patron7(12) &&
+                   visto7[3][6:0] == patron7(16) && visto7[2][6:0] == patron7(12), "display en FIN (GAnA)")
 
         presionar_start;
         `VERIFICAR(estado == ESPERA && p1 == 0 && p2 == 0, "FIN -> ESPERA no limpio el marcador")
@@ -418,6 +469,35 @@ module tb_integracion;
         esperar_ms(120);
         `VERIFICAR(estado == ESPERA, "no volvio a ESPERA al soltar RESET")
 
+        // ---- DIP 2: patrón de calibración sin tocar RESET ----
+        sw_prueba_n = 0;
+        esperar_ms(120);
+        begin : calibracion_dip
+            reg [8*ANCHO-1:0] esperado_cal;
+            integer f3, c3;
+            for (f3 = 0; f3 < 8; f3 = f3 + 1)
+                for (c3 = 0; c3 < ANCHO; c3 = c3 + 1)
+                    esperado_cal[f3*ANCHO + c3] = (f3 == 0 && (c3 % 8) <= (c3 / 8) + 1) || ((c3 % 8) == 0 && f3 <= 2);
+            `VERIFICAR(pantalla(0) == esperado_cal, "el DIP 2 no muestra el patron de calibracion")
+            for (j7 = 0; j7 < 8; j7 = j7 + 1)
+                `VERIFICAR(visto7[j7] == 8'hFF, $sformatf("el digito %0d no muestra 8. en el patron de prueba", j7))
+        end
+        sw_prueba_n = 1;
+        esperar_ms(120);
+
+        // ---- DIP 1: sin sonido no hay pitidos ----
+        begin : sin_sonido
+            integer antes;
+            sw_sonido_n = 1;
+            robots_activos = 1;
+            presionar_start;
+            antes = pitidos;
+            esperar_ms(4000);
+            `VERIFICAR(pitidos == antes, "el buzzer sono con el DIP 1 apagado")
+            robots_activos = 0;
+            sw_sonido_n = 0;
+        end
+
         // ---- Resumen ----
         $display("  goles registrados        : %0d", goles_vistos);
         $display("  rebotes en paleta        : %0d", rebotes_paleta);
@@ -428,7 +508,10 @@ module tb_integracion;
         $display("  tiempo simulado          : %0d s", $time / (1000 * MS));
         `VERIFICAR(pantallas_malas == 0, "T08 lo recibido por los MAX7219 no coincide con la imagen")
         `VERIFICAR(pantallas_revisadas > 1000, "muy pocas pantallas revisadas")
-        `VERIFICAR(seg_malos == 0, $sformatf("%0d ciclos con displays mal decodificados", seg_malos))
+        `VERIFICAR(seg_malos == 0, $sformatf("%0d ciclos con el marcador mal decodificado", seg_malos))
+        `VERIFICAR(dobles7 == 0, "dos digitos del display encendidos a la vez")
+        `VERIFICAR(pitidos > 1000, $sformatf("casi no sono el buzzer (%0d flancos)", pitidos))
+        $display("  flancos del buzzer       : %0d", pitidos);
         `VERIFICAR(violaciones_totales(0) == 0, "violaciones de tiempo en el MAX7219")
         `VERIFICAR(rebotes_paleta > 10, "casi no hubo rebotes en paleta")
 

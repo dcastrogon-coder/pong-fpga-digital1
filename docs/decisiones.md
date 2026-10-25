@@ -27,19 +27,23 @@ Responsable: cuando dice *Equipo* es porque lo acordamos entre los tres (Daniel 
 
 | ID | Fecha | Tema | Decisión | Justificación | Req. |
 |----|-------|------|----------|---------------|------|
-| D-15 | 2026-10-25 | Reloj | CLK_SYS = 50 MHz (a confirmar con el esquema de la tarjeta). Un solo dominio de reloj; las bases de tiempo son **pulsos de habilitación**, nunca relojes derivados | Evita problemas de sesgo y de temporización en la FPGA. Si el oscilador real es otro, solo se cambia `CLK_HZ`. | R03 |
+| D-15 | 2026-10-25 | Reloj | CLK_SYS = 50 MHz, pin 23 (CLK_50M de la tarjeta A-C4E6E10, confirmado en la serigrafía). Un solo dominio de reloj; las bases de tiempo son **pulsos de habilitación**, nunca relojes derivados | Evita problemas de sesgo y de temporización en la FPGA. Si se usara otro oscilador, solo se cambia `CLK_HZ`. | R03 |
 | D-16 | 2026-10-25 | Frecuencia hacia los MAX7219 | CLK_LED = 1 MHz (`DIV_CLK = 25`) | El chip admite 10 MHz, pero los cables a la matriz van a ser largos y pasan por un adaptador de nivel; 1 MHz da margen y aun así refresca la pantalla ~1900 veces por segundo con 4 chips (~3600 con 2). | R08 |
 | D-17 | 2026-10-25 | Reconfiguración de los MAX7219 | Repetir la secuencia de configuración cada 256 pantallas (~70 ms) | Si un chip se reinicia por ruido en los 5 V, se recupera solo. Lo probamos en `tb_max7219`. | R08 |
 | D-18 | 2026-10-25 | Brillo | Registro de intensidad = 0x04 | Con fuente USB conviene no subirlo mucho; es un parámetro. | R10 |
 | D-19 | 2026-10-25 | Orden de los módulos | Por defecto el chip conectado directo a DIN maneja la matriz de la izquierda (columnas 0-7) y la cadena avanza hacia la derecha. Parámetro `MODULO_CERCANO` = 1 invierte el orden completo de la cadena | En muchos módulos x4 el conector de entrada queda a la derecha; se corrige sin recablear. | R07, R08 |
 | D-20 | 2026-10-25 | Orientación de LEDs dentro del módulo | Por defecto dígito = fila, bit 7 = columna izquierda. Parámetros `TRANSPONER`, `INV_BITS`, `INV_DIGITOS` | Todavía no tenemos los módulos; con los parámetros corregimos cualquier orientación en Quartus sin tocar la lógica. | R07 |
 | D-21 | 2026-10-25 | Antirrebote | 2 flip-flops de sincronización + 8 muestras iguales a 1 kHz | Ventana de 8 ms: suficiente para pulsadores y no se siente lento. | R09 |
-| D-22 | 2026-10-25 | Displays de marcador | Manejo directo de 7 segmentos por jugador (14 salidas), polaridad por parámetro (`SEG_ACTIVO_BAJO`, por defecto ánodo común) | No sabemos aún qué displays vamos a conseguir. | R06, R10 |
+| D-22 | 2026-10-25 | Displays de marcador | ~~Dos displays externos manejados directamente (14 salidas)~~ → **reemplazada por D-28** | Lo decidimos antes de conocer la tarjeta. | R06, R10 |
 | D-23 | 2026-10-25 | Estados no usados de la FSM | Los códigos 101, 110 y 111 vuelven a ESPERA | Comportamiento definido ante estados inválidos, como pide la guía (VI-C). Lo forzamos en `tb_control_juego`. | R06 |
 | D-24 | 2026-10-25 | Modo de los transmisores | Parámetro `PAUSAR_SIN_ENLACE`. Con HT12E transmitiendo todo el tiempo (TE a tierra) va en 1; si el transmisor solo emite al presionar, va en 0 | Con transmisión por pulsación VT = 0 es el reposo normal y no se debe pausar. En ambos casos las órdenes se validan con VT. | R09 |
 | D-25 | 2026-10-25 | Pantalla | Usar el **módulo MAX7219 x4** (cuatro matrices 8×8 y cuatro MAX7219 en cascada en una sola placa, [Mactrónica LD059](https://www.mactronica.com.co/modulo-matriz-led-max7219-x4)) en lugar de dos módulos sueltos. La cancha pasa a ser de **8 × 32**. El diseño queda parametrizado con `ANCHO` = 16 o 32 | Es una sola placa con un solo conector (menos cables que dos módulos sueltos) y la cancha más larga se ve mucho mejor. Con `ANCHO = 16` seguimos cumpliendo la propuesta original. | R07, R08 |
 | D-26 | 2026-10-25 | Velocidad con 32 columnas | Periodos de 170, 130, 100 y 75 ms | Con los de 16 columnas cruzar la cancha tomaba casi 8 s. Así toma unos 5 s al comenzar la jugada y ~2,3 s en el nivel más rápido, tiempo suficiente para mover la paleta de un extremo al otro (~0,55 s). | R03 |
 | D-27 | 2026-10-25 | Calibración de la pantalla | Mientras se sostiene RESET se muestra un patrón "Γ" por matriz (brazo horizontal de m + 2 LEDs). También por parámetro `PATRON_PRUEBA` | Con el hardware en la mano basta sostener RESET para ver si alguna matriz quedó girada, en espejo o en otro orden, y ajustar los parámetros de D-20 y D-19. | R07 |
+| D-28 | 2026-10-25 | Marcador | Usar el **display de 8 dígitos multiplexado de la tarjeta**: BIT7 = puntaje de J1, BIT0 = puntaje de J2 y en el centro un mensaje de 4 caracteres según el estado (`HOLA`, `-n1-`, `-GOL`, `PAUS`, `GAnA`). Barrido de 0,5 ms por dígito (250 Hz) con 20 µs apagado entre dígitos | Ya viene en la tarjeta: ahorra 14 pines, resistencias y una compra, y el mensaje de estado ayuda mucho en la demostración. Sigue habiendo un dígito por jugador, como pedía la propuesta. | R06 |
+| D-29 | 2026-10-25 | Sonido | Pitidos con el buzzer de la tarjeta (pin 141): rebote en pared, rebote en paleta, gol y una melodía corta de fin. Se apaga con el DIP 1 | No es un "efecto sonoro complejo" (eso lo dejamos fuera en la propuesta): son tonos fijos de onda cuadrada. Da retroalimentación inmediata al jugador. | — |
+| D-30 | 2026-10-25 | Interruptores DIP | SW1 = sonido, SW2 = patrón de calibración (además de sostener RESET) | Poder dejar el patrón fijo mientras se ajusta la orientación sin tener un dedo en RESET. | R07 |
+| D-31 | 2026-10-25 | Pines | Todos los pines de la tarjeta salen de su serigrafía (tabla en `hardware.md`). START = K2 (P90), RESET = K3 (P91); MAX7219 en P28/P31/P33; J1 en P30/P32/P34; J2 en P42/P44/P49 | K1 es nCONFIG y K4/K5 están en DEV_CLRn/DEV_OE, así que los evitamos. Agrupamos las señales del conector por bloques para cablear ordenado. | R10 |
 
 ## Hallazgos de la simulación que cambiaron el diseño
 
@@ -57,9 +61,9 @@ Estos no son decisiones de diseño como tal, pero los anotamos porque la guía p
 
 | Por definir | Qué necesitamos | Dónde se ajusta |
 |-------------|-----------------|-----------------|
-| Pines reales de la tarjeta | Esquema de nuestra tarjeta con la EP4CE10E22C8N | `quartus/pong.qsf` |
-| Oscilador | Confirmar 50 MHz | `CLK_HZ` en `pong_top` |
-| Orientación de las matrices | Sostener RESET y comparar con el patrón esperado (prueba física #2, D-27) | `TRANSPONER`, `INV_BITS`, `INV_DIGITOS`, `MODULO_CERCANO` |
-| Polaridad de displays | Referencia del display comprado | `SEG_ACTIVO_BAJO` |
+| ~~Pines reales de la tarjeta~~ | Resuelto con la serigrafía de la A-C4E6E10 (D-31). Falta confirmar con multímetro los del conector | `quartus/pong.qsf` |
+| ~~Oscilador~~ | Resuelto: 50 MHz en P23 (D-15) | — |
+| Orientación de las matrices | Sostener RESET (o DIP 2 en ON) y comparar con el patrón esperado (prueba física #2, D-27) | `TRANSPONER`, `INV_BITS`, `INV_DIGITOS`, `MODULO_CERCANO` |
+| Polaridad del display, buzzer, LEDs y DIP de la tarjeta | Prueba física #3 | `SEG_ACTIVO_BAJO`, `DIG_ACTIVO_BAJO`, `BUZZER_ACTIVO_BAJO`, `LED_ACTIVO_BAJO`, `SW_ACTIVO_BAJO` |
 | Módulos RF | Recomendamos un par de 315 MHz para J1 y uno de 433 MHz para J2 (ver `docs/hardware.md`) | `CTRL_ACTIVO_BAJO`, `USAR_VT`, `PAUSAR_SIN_ENLACE` |
-| Fuente | Medir corriente real con la pantalla en "todo encendido" | `docs/hardware.md` |
+| Fuente | Medir corriente real con todo encendido | `docs/hardware.md` |

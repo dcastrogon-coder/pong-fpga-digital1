@@ -3,17 +3,23 @@
 #  Pong en FPGA - Electrónica Digital 1 - Universidad Nacional de Colombia
 #  Daniel Felipe Castro González, Juan David Ortiz Muñoz, David Eduardo Chivata Arias
 # ----------------------------------------------------------------------------
-#  OJO, LEER ANTES DE PROGRAMAR LA TARJETA:
-#  Las asignaciones de pines de la tarjeta (reloj, pulsadores y LEDs) las
-#  tomamos de la documentación de las tarjetas tipo "RZ-EasyFPGA A2.x" con
-#  EP4CE10E22C8N, que es la más parecida a la nuestra. Son TENTATIVAS: antes
-#  de conectar cualquier cosa hay que revisar el esquema de NUESTRA tarjeta
-#  (punto PC4 de la guía, decisión D-15 en docs/decisiones.md).
+#  Tarjeta: A-C4E6E10 (EP4CE10E22C8N). Todos los pines los sacamos de la
+#  serigrafía de la tarjeta (las tablitas "Nixie Tube", "CLK_50M", "VGA",
+#  "SW", etc. impresas en la placa). Ver docs/hardware.md, tabla de pines.
 #
-#  Los pines hacia periféricos externos (MAX7219, displays y receptores RF)
-#  los dejamos comentados con "PIN_??" a propósito: se eligen sobre el
-#  conector de expansión después de verificar a qué banco pertenece cada uno
-#  y con qué tensión de E/S trabaja ese banco.
+#  Lo que usamos de la tarjeta:
+#    - Oscilador de 50 MHz (CLK_50M, pin 23)
+#    - K2 (pin 90) = START, K3 (pin 91) = RESET
+#    - Display de 8 dígitos multiplexado (segmentos A..H y BIT0..BIT7)
+#    - Buzzer (BELL, pin 141)
+#    - DIP SW1 (pin 58) = sonido, SW2 (pin 59) = patrón de calibración
+#    - LEDs D3..D6 como indicadores de estado
+#  Y del conector de expansión de 3,3 V salen el MAX7219 x4 (a través del
+#  SN74AHCT125) y los receptores RF.
+#
+#  Antes de conectar: confirmar con multímetro que los pines del conector
+#  coinciden con la serigrafía (las leímos de una foto) y que el banco
+#  trabaja a 3,3 V.
 # ============================================================================
 
 set_global_assignment -name FAMILY "Cyclone IV E"
@@ -28,6 +34,11 @@ set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS_WEAK_PULLUP "AS INPUT TRI-STATED"
 set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+# K4 y K5 de la tarjeta están en los pines DEV_CLRn y DEV_OE. No los usamos,
+# y dejamos explícito que esas funciones quedan apagadas para que nadie
+# reinicie la FPGA entera por accidente.
+set_global_assignment -name ENABLE_DEVICE_WIDE_RESET OFF
+set_global_assignment -name ENABLE_DEVICE_WIDE_OE OFF
 
 # ---------------------------------------------------------------- Fuentes RTL
 set_global_assignment -name VERILOG_FILE ../rtl/pong_top.v
@@ -42,47 +53,71 @@ set_global_assignment -name VERILOG_FILE ../rtl/control_juego.v
 set_global_assignment -name VERILOG_FILE ../rtl/imagen.v
 set_global_assignment -name VERILOG_FILE ../rtl/max7219_tx.v
 set_global_assignment -name VERILOG_FILE ../rtl/siete_segmentos.v
+set_global_assignment -name VERILOG_FILE ../rtl/caracter_7seg.v
+set_global_assignment -name VERILOG_FILE ../rtl/display_multiplexado.v
+set_global_assignment -name VERILOG_FILE ../rtl/sonido.v
 set_global_assignment -name SDC_FILE pong.sdc
 
-# ---------------------------------------------------------------- Tarjeta (TENTATIVO)
+# ---------------------------------------------------------------- Reloj y pulsadores
 set_location_assignment PIN_23 -to CLK_SYS
-set_location_assignment PIN_25 -to RESET_PIN
-set_location_assignment PIN_88 -to START_PIN
+set_location_assignment PIN_90 -to START_PIN
+set_location_assignment PIN_91 -to RESET_PIN
 
-# Para la prueba física #4 (controles cableados, sin RF) podemos usar los
-# pulsadores de la tarjeta. En ese caso: USAR_VT = 0 y CTRL_ACTIVO_BAJO = 1
-# en pong_top, y descomentar estas cuatro líneas.
-# set_location_assignment PIN_89 -to J1_UP
-# set_location_assignment PIN_90 -to J1_DOWN
-# set_location_assignment PIN_91 -to J2_UP
-# set_location_assignment PIN_?? -to J2_DOWN
+# ---------------------------------------------------------------- DIP
+set_location_assignment PIN_58 -to SW_SONIDO
+set_location_assignment PIN_59 -to SW_PRUEBA
 
-set_location_assignment PIN_87 -to LED[0]
-set_location_assignment PIN_86 -to LED[1]
-set_location_assignment PIN_85 -to LED[2]
-set_location_assignment PIN_84 -to LED[3]
+# ---------------------------------------------------------------- Display de 8 dígitos (Nixie Tube)
+# Segmentos: A..G y H (punto)
+set_location_assignment PIN_127 -to SEG[0]
+set_location_assignment PIN_126 -to SEG[1]
+set_location_assignment PIN_125 -to SEG[2]
+set_location_assignment PIN_124 -to SEG[3]
+set_location_assignment PIN_121 -to SEG[4]
+set_location_assignment PIN_120 -to SEG[5]
+set_location_assignment PIN_119 -to SEG[6]
+set_location_assignment PIN_115 -to SEG[7]
+# Dígitos: BIT0 (derecha) .. BIT7 (izquierda)
+set_location_assignment PIN_128 -to DIG[0]
+set_location_assignment PIN_129 -to DIG[1]
+set_location_assignment PIN_132 -to DIG[2]
+set_location_assignment PIN_133 -to DIG[3]
+set_location_assignment PIN_135 -to DIG[4]
+set_location_assignment PIN_136 -to DIG[5]
+set_location_assignment PIN_137 -to DIG[6]
+set_location_assignment PIN_138 -to DIG[7]
 
-# ---------------------------------------------------------------- MAX7219 (por definir)
-# DIN, CLK_LED y LOAD salen a 3,3 V y pasan por el SN74AHCT125 hacia 5 V.
-# set_location_assignment PIN_?? -to DIN
-# set_location_assignment PIN_?? -to CLK_LED
-# set_location_assignment PIN_?? -to LOAD
+# ---------------------------------------------------------------- Buzzer y LEDs
+set_location_assignment PIN_141 -to BUZZER
+set_location_assignment PIN_72 -to LED[0]
+set_location_assignment PIN_73 -to LED[1]
+set_location_assignment PIN_74 -to LED[2]
+set_location_assignment PIN_80 -to LED[3]
 
-# ---------------------------------------------------------------- Receptores RF (por definir)
-# Las salidas del receptor NO pueden llegar a 5 V a la FPGA: alimentarlo a
-# 3,3 V o poner divisor/adaptador (decisión D-12).
-# set_location_assignment PIN_?? -to J1_UP
-# set_location_assignment PIN_?? -to J1_DOWN
-# set_location_assignment PIN_?? -to J1_VT
-# set_location_assignment PIN_?? -to J2_UP
-# set_location_assignment PIN_?? -to J2_DOWN
-# set_location_assignment PIN_?? -to J2_VT
+# ---------------------------------------------------------------- Conector de expansión (3,3 V)
+# Fila de arriba:  P28 P31 P33 P38 GND P43 P46 P50 GND P51 P53 P55 GND P88 CLK-IN
+# Fila de abajo:   P30 P32 P34 P39 GND P42 P44 P49 GND P52 P54 P5x GND P89 CLK-IN
+#
+# MAX7219 x4 (pasan por el SN74AHCT125 hacia 5 V)
+set_location_assignment PIN_28 -to DIN
+set_location_assignment PIN_31 -to CLK_LED
+set_location_assignment PIN_33 -to LOAD
+# Receptor RF del jugador 1 (a través del adaptador de nivel 5 V -> 3,3 V)
+set_location_assignment PIN_30 -to J1_UP
+set_location_assignment PIN_32 -to J1_DOWN
+set_location_assignment PIN_34 -to J1_VT
+# Receptor RF del jugador 2
+set_location_assignment PIN_42 -to J2_UP
+set_location_assignment PIN_44 -to J2_DOWN
+set_location_assignment PIN_49 -to J2_VT
 
-# ---------------------------------------------------------------- Displays (por definir)
-# SEG_Jx[0] = a ... SEG_Jx[6] = g. Corriente por segmento limitada con
-# resistencias de 330 ohm (ver docs/hardware.md).
-# set_location_assignment PIN_?? -to SEG_J1[0]
-# ... (14 líneas en total)
+# Prueba sin RF (prueba física #4): conectar cuatro pulsadores entre estos
+# mismos pines y GND, poner USAR_VT = 0 y CTRL_ACTIVO_BAJO = 1 en pong_top
+# y descomentar las resistencias de pull-up internas:
+# set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to J1_UP
+# set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to J1_DOWN
+# set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to J2_UP
+# set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to J2_DOWN
 
 # ---------------------------------------------------------------- Estándar de E/S
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to *
@@ -91,3 +126,5 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW "8MA" -to CLK_LED
 set_instance_assignment -name CURRENT_STRENGTH_NEW "8MA" -to LOAD
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to RESET_PIN
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to START_PIN
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_SONIDO
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SW_PRUEBA

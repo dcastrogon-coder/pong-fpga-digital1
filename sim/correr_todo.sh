@@ -34,6 +34,8 @@ declare -A FUENTES=(
   [tb_generador_ticks]="$RTL/generador_ticks.v"
   [tb_imagen]="$RTL/imagen.v"
   [tb_siete_segmentos]="$RTL/siete_segmentos.v"
+  [tb_display_multiplexado]="$RTL/display_multiplexado.v $RTL/caracter_7seg.v $RTL/siete_segmentos.v"
+  [tb_sonido]="$RTL/sonido.v"
   [tb_max7219]="$RTL/max7219_tx.v tb/modelo_max7219.v"
   [tb_integracion]="$RTL/*.v tb/modelo_max7219.v"
 )
@@ -42,7 +44,7 @@ declare -A FUENTES=(
 DEPENDEN_DEL_ANCHO="tb_colisiones tb_pelota tb_imagen tb_max7219 tb_integracion"
 
 TODAS="tb_colisiones tb_paletas tb_pelota tb_puntaje tb_control_juego tb_entradas \
-tb_generador_ticks tb_imagen tb_siete_segmentos tb_max7219 tb_integracion"
+tb_generador_ticks tb_imagen tb_siete_segmentos tb_display_multiplexado tb_sonido tb_max7219 tb_integracion"
 
 pasan=0; fallan=0; resumen=""
 

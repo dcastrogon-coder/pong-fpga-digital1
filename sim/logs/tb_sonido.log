@@ -1,0 +1,9 @@
+== tb_sonido ==
+  pared: 1760 Hz durante 24 ms (esperado 1760 Hz, 25 ms)
+  paleta: 880 Hz durante 49 ms (esperado 880 Hz, 50 ms)
+  gol: 220 Hz durante 399 ms (esperado 220 Hz, 400 ms)
+  fin: primera nota de 523 Hz, melodia de 479 ms
+------------------------------------------------------------
+RESULTADO tb_sonido: PASA (12 verificaciones)
+------------------------------------------------------------
+tb/tb_sonido.v:133: $finish called at 1993002500000 (1ps)

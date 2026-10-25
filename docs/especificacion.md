@@ -17,19 +17,23 @@ Estas son las reglas del juego tal como quedaron congeladas antes de escribir un
 9. **Después del gol.** El juego se congela 1 s y la pelota sale del centro hacia el jugador que perdió el punto (D-09).
 10. **Victoria.** Gana el primero en llegar a 9. La mitad de la pantalla del ganador y su display titilan; START prepara una partida nueva en 0-0 (D-10, D-14).
 11. **Pausa.** START durante el juego pausa; START de nuevo reanuda. Si se pierde la señal de algún control, el juego entra en pausa y las órdenes de ese control se ignoran hasta que vuelva el enlace (D-11).
-12. **Reinicio.** RESET en cualquier momento devuelve todo al estado de encendido (salvo la pantalla, que no necesita reconfigurarse). Mientras RESET está presionado la pantalla muestra el patrón de calibración (D-27).
+12. **Marcador.** El display de 8 dígitos de la tarjeta muestra a la izquierda el puntaje de J1, a la derecha el de J2 y en el centro un mensaje: `HOLA` en espera, `-n1-` a `-n4-` durante el juego (nivel de velocidad), `-GOL` tras un punto, `PAUS` en pausa y `GAnA` al final, con el puntaje del ganador titilando (D-28).
+13. **Sonido.** Con el DIP 1 en ON, el buzzer pita en cada rebote, suena grave en cada gol y toca una melodía corta al final (D-29).
+14. **Reinicio.** RESET en cualquier momento devuelve todo al estado de encendido (salvo la pantalla, que no necesita reconfigurarse). Mientras RESET está presionado la pantalla muestra el patrón de calibración (D-27).
 
 ## Inventario de entradas, salidas y estados
 
 | Tipo | Señal | Origen / destino | Notas |
 |------|-------|------------------|-------|
-| Entrada | `CLK_SYS` | oscilador de la tarjeta | 50 MHz (por confirmar) |
+| Entrada | `CLK_SYS` | oscilador CLK_50M de la tarjeta (P23) | 50 MHz |
 | Entrada | `J1_UP`, `J1_DOWN`, `J2_UP`, `J2_DOWN` | receptores RF (en simulación, el testbench) | polaridad por parámetro |
 | Entrada | `J1_VT`, `J2_VT` | pin VT del HT12D | 1 = transmisión válida |
-| Entrada | `START_PIN`, `RESET_PIN` | pulsadores de la tarjeta | activos en bajo |
+| Entrada | `START_PIN`, `RESET_PIN` | pulsadores K2 (P90) y K3 (P91) | activos en bajo |
+| Entrada | `SW_SONIDO`, `SW_PRUEBA` | DIP SW1 (P58) y SW2 (P59) | 0 = ON |
 | Salida | `DIN`, `CLK_LED`, `LOAD` | módulo MAX7219 x4 (4 chips en cascada) | a 5 V a través del SN74AHCT125 |
-| Salida | `SEG_J1[6:0]`, `SEG_J2[6:0]` | displays de 7 segmentos | `{g,f,e,d,c,b,a}` |
-| Salida | `LED[3:0]` | LEDs de la tarjeta | jugando, pausa, enlace J1, enlace J2 |
+| Salida | `SEG[7:0]`, `DIG[7:0]` | display de 8 dígitos de la tarjeta | multiplexado; `{H..A}` y BIT7..BIT0 |
+| Salida | `BUZZER` | buzzer de la tarjeta (P141) | pitidos del juego |
+| Salida | `LED[3:0]` | LEDs D3-D6 de la tarjeta | jugando, pausa, enlace J1, enlace J2 |
 | Estado | `YP1`, `YP2` | paletas | 3 bits c/u |
 | Estado | `X`, `Y`, `DX`, `DY` | pelota | 5 + 3 + 1 + 1 bits (4 + 3 + 1 + 1 con 16 columnas) |
 | Estado | `P1`, `P2` | marcador | 4 bits c/u |

@@ -23,8 +23,10 @@ Ningún testbench depende de "mirar la onda y ver si se ve bien": todos comparan
 | `tb_generador_ticks` | T03 | 8 + monitor por ciclo | — | PASA |
 | `tb_imagen` | T07 | 17 867 | 8 651 | PASA |
 | `tb_siete_segmentos` | T06 | 48 | — | PASA |
+| `tb_display_multiplexado` | T06 (display de la tarjeta) | 68 + monitor por ciclo | — | PASA |
+| `tb_sonido` | — (buzzer) | 12 | — | PASA |
 | `tb_max7219` | T08 | 23 + chequeo de tiempos | 19 + chequeo | PASA |
-| `tb_integracion` | T01-T09 de extremo a extremo | 28 + monitores por ciclo | 28 + monitores | PASA |
+| `tb_integracion` | T01-T09 de extremo a extremo | 43 + monitores por ciclo | 43 + monitores | PASA |
 
 Los bloques marcados con "—" no dependen del ancho de la cancha. T10 (niveles eléctricos) es una revisión de hardware y se documenta en [`hardware.md`](hardware.md).
 
@@ -37,7 +39,7 @@ Los bloques marcados con "—" no dependen del ancho de la cancha. T10 (niveles 
 | R03 | Sin tick la pelota no cambia; un tick = una casilla; periodos medidos | `tb_pelota`, `tb_generador_ticks` | `tb_generador_ticks.log` |
 | R04 | Rebotes en techo, piso y ambas paletas; todas las combinaciones (36 864 con 32 columnas) contra un modelo independiente | `tb_colisiones`, `tb_pelota` (T04a-d) | `tb_colisiones.log` |
 | R05 | Cada escape produce exactamente un pulso de gol (138 de 138 en la partida aleatoria con 32 columnas, 274 de 274 con 16) y suma un punto al rival | `tb_pelota`, `tb_puntaje`, `tb_integracion` | `tb_pelota.log` |
-| R06 | Saturación en 9, `limpiar`, RESET a mitad de juego, FIN → ESPERA en 0-0 | `tb_puntaje`, `tb_control_juego`, `tb_integracion` | `tb_integracion.log` |
+| R06 | Saturación en 9, `limpiar`, RESET a mitad de juego, FIN → ESPERA en 0-0; el marcador del display de la tarjeta coincide con el puntaje en todo momento y los mensajes cambian con el estado | `tb_puntaje`, `tb_control_juego`, `tb_display_multiplexado`, `tb_integracion` | `tb_integracion.log` |
 | R07 | Todos los LEDs correctos en todas las escenas posibles; ocultar pelota; efecto de fin; patrón de calibración | `tb_imagen` | `tb_imagen.log` |
 | R08 | Configuración en los 4 chips, 64 bits por transferencia, patrones reconstruidos desde los registros de los 4 chips, ambos órdenes de cadena, cero violaciones de tiempo | `tb_max7219`, `tb_integracion` | `tb_max7219.log`, cronograma abajo |
 | R09 | Rebotes filtrados, VT anula órdenes enclavadas, la caída de enlace pausa, no se reanuda sin enlace, START con rebotes da un pulso | `tb_entradas`, `tb_control_juego`, `tb_integracion` | `tb_entradas.log` |
@@ -50,14 +52,16 @@ La prueba de integración conecta `pong_top` completo a una cadena de cuatro mod
 | Medida | 8 × 32 (módulo x4) | 8 × 16 |
 |--------|-------------------:|-------:|
 | Marcador final | J1 9 - 6 J2 | J1 5 - 9 J2 |
-| Goles registrados (todos con exactamente un punto) | 16 | 14 |
-| Rebotes en paleta | 52 | 42 |
+| Goles registrados (todos con exactamente un punto) | 17 | 14 |
+| Rebotes en paleta | 52 | 43 |
 | Nivel de velocidad máximo alcanzado | 3 | 3 |
-| Pantallas comparadas MAX7219 vs. imagen interna | 5063 (0 diferencias) | 5868 (0 diferencias) |
+| Pantallas comparadas MAX7219 vs. imagen interna | 5143 (0 diferencias) | 6023 (0 diferencias) |
 | Violaciones de tiempo del MAX7219 | 0 | 0 |
-| Tiempo de juego simulado | 270 s | 162 s |
+| Ciclos con el marcador de la tarjeta mal decodificado | 0 | 0 |
+| Flancos del buzzer durante la partida | 16 134 | 7 763 |
+| Tiempo de juego simulado | 274 s | 166 s |
 
-En las dos versiones también pasan: pausa por START, caída del enlace de J2 con su botón pegado, intento de reanudar sin enlace, FIN → ESPERA → partida nueva → RESET, y el patrón de calibración visto en los LEDs mientras se sostiene RESET.
+En las dos versiones también pasan: pausa por START, caída del enlace de J2 con su botón pegado, intento de reanudar sin enlace, FIN → ESPERA → partida nueva → RESET, el patrón de calibración visto en los LEDs (sosteniendo RESET y con el DIP 2), los mensajes `HOLA`, `-n1-`, `PAUS` y `GAnA` leídos del barrido del display de la tarjeta, y silencio total con el DIP 1 apagado.
 
 Esta animación está hecha con lo que quedó **en los registros de los cuatro modelos de MAX7219**, o sea, lo que se vería en los LEDs; no con la imagen interna del diseño:
 
@@ -66,7 +70,7 @@ Esta animación está hecha con lo que quedó **en los registros de los cuatro m
 El registro de la partida trae además la pantalla en ASCII en el instante de cada gol, por ejemplo:
 
 ```
-  t=16457 ms: gol de J2
+  t=16467 ms: gol de J2
    +--------------------------------+   J1 0 - 1 J2
    |................................|
    |O...............................|
@@ -111,8 +115,8 @@ bash scripts/sintesis_yosys.sh
 
 | Recurso (Yosys, `synth_intel -family cycloneive`, 32 columnas) | Cantidad | EP4CE10E22C8N |
 |----------------------------------------------------------------|---------:|--------------:|
-| Celdas lógicas (`lcell_comb`) | ~2000 | 10 320 LE |
-| Flip-flops (`dffeas`) | 631 | 10 320 |
+| Celdas lógicas (`lcell_comb`) | ~2200 | 10 320 LE |
+| Flip-flops (`dffeas`) | 765 | 10 320 |
 | Latches inferidos | 0 | — |
 
 Es una estimación (alrededor del 20 % de la FPGA): Quartus II optimiza distinto y el número final lo tomamos de su reporte en PC4.
