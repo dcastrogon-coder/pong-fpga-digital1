@@ -147,6 +147,32 @@ GitHub corre las mismas pruebas cada vez que subimos cambios (pestaña *Actions*
 
 Las reglas completas están en [`docs/especificacion.md`](docs/especificacion.md).
 
+## Cómo trabajamos en el repositorio
+
+Los tres somos colaboradores del repositorio, así que cualquiera puede modificarlo.
+
+**Cambios pequeños (desde el navegador o el celular):** abrir el archivo en GitHub, tocar el lápiz (*Edit this file*), hacer el cambio y escribir en *Commit changes* una frase que diga qué cambiamos y por qué.
+
+**Cambios de código (desde un computador):**
+
+```bash
+git clone https://github.com/dcastrogon-coder/pong-fpga-digital1.git
+cd pong-fpga-digital1
+git pull                          # siempre antes de empezar, para traer lo de los demás
+# ... editar ...
+bash sim/correr_todo.sh           # que todo siga pasando antes de subir
+git add -A
+git commit -m "Qué cambiamos y por qué"
+git push
+```
+
+Acuerdos del grupo:
+
+* Antes de subir cambios en `rtl/`, correr las simulaciones. GitHub también las corre solo en cada push (pestaña *Actions*): si sale una ✗ roja, algo se dañó.
+* Si cambiamos una regla del juego, un pin o un parámetro, lo anotamos en [`docs/decisiones.md`](docs/decisiones.md) con su justificación.
+* Los comentarios del código van en primera persona del plural ("aquí calculamos...", "lo dejamos así porque...").
+* Para no pisarnos, avisamos en el grupo antes de modificar un mismo archivo.
+
 ## Documentación
 
 * [`docs/especificacion.md`](docs/especificacion.md): reglas, entradas/salidas y requisitos R01-R10.
