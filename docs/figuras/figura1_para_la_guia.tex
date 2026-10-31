@@ -1,0 +1,18 @@
+% ----------------------------------------------------------------------------
+%  Bloque para reemplazar la Figura 1 de la guía metodológica.
+%  1) En el preámbulo (si no están ya):
+%       \usepackage{tikz}
+%       \usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds}
+%  2) Copiar figura1_tikz.tex en la misma carpeta del .tex de la guía.
+%  3) Pegar esto donde estaba la figura vieja. Usamos figure* porque el
+%     diagrama ocupa las dos columnas.
+% ----------------------------------------------------------------------------
+\begin{figure*}[t]
+  \centering
+  \resizebox{\textwidth}{!}{\input{figura1_tikz.tex}}
+  \caption{Estructura del circuito. Se muestran los bloques que se implementan
+  dentro de la FPGA, las señales que los conectan (con su ancho en bits) y los
+  periféricos de la tarjeta A-C4E6E10 a los que salen. El color de cada bloque
+  indica la etapa del desarrollo en la que se construye y se prueba.}
+  \label{fig:estructura}
+\end{figure*}

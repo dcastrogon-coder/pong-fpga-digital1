@@ -30,3 +30,13 @@ __pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
+
+# Etapas del paso a paso: se regeneran con correr_etapaN.sh
+etapas/*/sim/*.vvp
+etapas/*/sim/*.vcd
+etapas/*/sim/pantallas_*.txt
+etapas/*/salida/
+etapas/*/db/
+etapas/*/incremental_db/
+docs/figuras/*.aux
+docs/figuras/*.log

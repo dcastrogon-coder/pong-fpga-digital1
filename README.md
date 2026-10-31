@@ -175,6 +175,14 @@ Acuerdos del grupo:
 
 ## Documentación
 
+**Paso a paso (para ir armando el proyecto por etapas):**
+
+* [`docs/paso_a_paso/etapa1_pantalla.md`](docs/paso_a_paso/etapa1_pantalla.md): etapa 1, la pantalla (estructura, máquina de estados, tablas de verdad, ecuaciones y simulación). También está [en PDF](docs/paso_a_paso/etapa1_pantalla.pdf).
+* [`etapas/`](etapas/): el código de cada etapa.
+* [`docs/figuras/`](docs/figuras/): Figura 1 nueva (estructura del circuito) y demás figuras en TikZ, listas para la guía en LaTeX.
+
+**Diseño completo:**
+
 * [`docs/especificacion.md`](docs/especificacion.md): reglas, entradas/salidas y requisitos R01-R10.
 * [`docs/decisiones.md`](docs/decisiones.md): registro de decisiones y de los errores que nos encontró la simulación.
 * [`docs/diseno_logico.md`](docs/diseno_logico.md): fichas de cada bloque con tablas de verdad, tablas de transición, ecuaciones y diagramas de estados.

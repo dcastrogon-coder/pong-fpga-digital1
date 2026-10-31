@@ -1,0 +1,34 @@
+== tb_etapa1: punto que recorre la pantalla 8 x 32 ==
+WARNING: tb_etapa1.v:206: $fopen's file name argument (vpiConstant) is not a valid string.
+VCD info: dumpfile sim/tb_etapa1.vcd opened for output.
+  los 4 chips quedaron configurados (test=00 scan=07 decode=00 brillo=04 shutdown=01)
+  Pantalla en el paso 45 (X=13, Y=1), leída de los registros de los 4 chips:
+   +--------+--------+--------+--------+
+   |........|........|........|........|
+   |........|.....O..|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   +--------+--------+--------+--------+
+  recorrido: 260 pasos revisados, 0 con la pantalla equivocada
+  Patrón de calibración (DIP SW2 en ON):
+   +--------+--------+--------+--------+
+   |OO......|OOO.....|OOOO....|OOOOO...|
+   |O.......|O.......|O.......|O.......|
+   |O.......|O.......|O.......|O.......|
+   |........|........|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   |........|........|........|........|
+   +--------+--------+--------+--------+
+  ecuaciones de la FSM: 2664522 ciclos revisados, 0 diferencias con el circuito
+  transferencias revisadas: 20034 (todas de 64 bits: si)
+  violaciones de tiempo del MAX7219: 0
+------------------------------------------------------------
+RESULTADO tb_etapa1: PASA (269 verificaciones)
+------------------------------------------------------------
+tb_etapa1.v:294: $finish called at 1332388751000 (1ps)

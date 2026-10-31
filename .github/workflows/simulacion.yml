@@ -19,6 +19,9 @@ jobs:
       - name: Correr todos los testbenches
         run: bash sim/correr_todo.sh
 
+      - name: Simulación de la etapa 1 (pantalla)
+        run: bash etapas/etapa1_pantalla/correr_etapa1.sh
+
       - name: Revisión de síntesis (latches y tamaño)
         run: bash scripts/sintesis_yosys.sh
 
@@ -27,4 +30,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: registros-simulacion
-          path: sim/logs/
+          path: |
+            sim/logs/
+            etapas/*/sim/*.log
