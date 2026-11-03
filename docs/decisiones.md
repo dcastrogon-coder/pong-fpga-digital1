@@ -62,9 +62,9 @@ Estos no son decisiones de diseño como tal, pero los anotamos porque la guía p
 
 | Por definir | Qué necesitamos | Dónde se ajusta |
 |-------------|-----------------|-----------------|
-| ~~Pines reales de la tarjeta~~ | Resuelto con la serigrafía de la A-C4E6E10 (D-31). Falta confirmar con multímetro los del conector | `quartus/pong.qsf` |
+| ~~Pines reales de la tarjeta~~ | Resuelto con la serigrafía de la A-C4E6E10 (D-31) y confirmado contra el esquemático de la tarjeta | `quartus/pong.qsf` |
 | ~~Oscilador~~ | Resuelto: 50 MHz en P23 (D-15) | — |
 | Orientación de las matrices | Sostener RESET (o DIP 2 en ON) y comparar con el patrón esperado (prueba física #2, D-27) | `TRANSPONER`, `INV_BITS`, `INV_DIGITOS`, `MODULO_CERCANO` |
-| Polaridad del display, buzzer, LEDs y DIP de la tarjeta | Prueba física #3 | `SEG_ACTIVO_BAJO`, `DIG_ACTIVO_BAJO`, `BUZZER_ACTIVO_BAJO`, `LED_ACTIVO_BAJO`, `SW_ACTIVO_BAJO` |
+| ~~Polaridad del display, LEDs y DIP de la tarjeta~~ | Confirmada en el esquemático: todo activo en bajo. Falta verlo en la prueba física #3 y revisar el buzzer en reposo | `SEG_ACTIVO_BAJO`, `DIG_ACTIVO_BAJO`, `BUZZER_ACTIVO_BAJO`, `LED_ACTIVO_BAJO`, `SW_ACTIVO_BAJO` |
 | Módulos RF | Recomendamos un par de 315 MHz para J1 y uno de 433 MHz para J2 (ver `docs/hardware.md`) | `CTRL_ACTIVO_BAJO`, `USAR_VT`, `PAUSAR_SIN_ENLACE` |
 | Fuente | Medir corriente real con todo encendido | `docs/hardware.md` |

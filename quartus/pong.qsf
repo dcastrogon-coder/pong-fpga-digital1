@@ -17,9 +17,10 @@
 #  Y del conector de expansión de 3,3 V salen el MAX7219 x4 (a través del
 #  SN74AHCT125) y los receptores RF.
 #
-#  Antes de conectar: confirmar con multímetro que los pines del conector
-#  coinciden con la serigrafía (las leímos de una foto) y que el banco
-#  trabaja a 3,3 V.
+#  Verificado contra el esquemático de la tarjeta (2 nov 2026): los pines
+#  coinciden con la serigrafía y todos los VCC_IO están a 3,3 V.
+#  Ojo: P88 y P89 del conector son pines de reloj (solo entrada) y el I/O58
+#  del conector es el mismo del DIP SW1.
 # ============================================================================
 
 set_global_assignment -name FAMILY "Cyclone IV E"

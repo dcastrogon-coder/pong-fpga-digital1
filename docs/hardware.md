@@ -40,12 +40,22 @@ Los escogimos juntos para que el cableado quede ordenado: el MAX7219 en los tres
 
 Cosas a tener en cuenta de esta tarjeta:
 
-* **Los pines los leímos de la serigrafía en una foto.** Antes de conectar, confirmar con el multímetro (continuidad desde el pin del conector hasta la pata del chip) al menos los nueve del conector.
+* **Verificado contra el esquemático de la tarjeta** (A-C4E6 SCH, 2 nov 2026). Todo lo de la tabla de arriba coincide con la serigrafía:
+  * Oscilador de 50 MHz en el pin 23 (CLK_50M) y uno de usuario en el 24.
+  * **Todos los VCC_IO de la FPGA van a 3,3 V**, así que todos los bancos son de 3,3 V y el adaptador SN74AHCT125 hacia el MAX7219 sigue siendo obligatorio.
+  * Display de 8 dígitos: ánodo común; cada dígito se habilita con un PNP (Q50-Q57) cuya base va al pin por 4,7 kΩ, así que **dígitos activos en bajo**. Los segmentos van al pin por 240 Ω, así que **segmentos activos en bajo**. BIT0 es el dígito de la derecha.
+  * LEDs D3-D14: ánodo a 3,3 V por 680 Ω y cátodo al pin, así que **activos en bajo**.
+  * DIP: pull-up de 4,7 kΩ y el interruptor a GND, así que **ON = 0**.
+  * Pulsadores K1-K5: pull-up de 4,7 kΩ y a GND al presionar, así que **activos en bajo**. K1 es nCONFIG (reprograma la FPGA); K2 = P90, K3 = P91, K4 = P87, K5 = P86.
+  * Buzzer: va de 5 V a un PNP (Q70) con la base al pin 141 por 4,7 kΩ. Se activa con 0. ⚠ Como el buzzer está a 5 V y el pin solo llega a 3,3 V, puede que no se apague del todo con 1: revisar que quede en silencio en reposo.
+* **Ojo con dos pines del conector:**
+  * **P88 y P89** (los del lado de "CLK-IN") son pines de reloj dedicados de la Cyclone IV y, según el manual, **solo sirven como entradas**. No se pueden usar para DIN, CLK_LED, LOAD ni segmentos. Confirmarlo en el Pin Planner de Quartus.
+  * El pin **I/O58** del conector es el mismo del **DIP SW1**. Si se usa en el conector, el SW1 debe quedar en OFF.
 * El conector solo tiene **3,3 V y GND**; no hay 5 V. El módulo MAX7219 x4 se alimenta con fuente aparte y se unen las tierras.
 * La tarjeta advierte *"If you use mini USB, don't use DC5V input"*: alimentarla por una sola de las dos entradas.
 * El cristal de 12 MHz que se ve en la placa es del CH340 (USB-serial), no de la FPGA.
 * Con el display de la tarjeta ya no hacen falta displays externos: eso nos ahorra 14 pines, 14 resistencias y una compra (D-28).
-* Polaridades que **suponemos** y que hay que confirmar en la prueba física #3: segmentos y dígitos del display activos en bajo (ánodo común con transistores PNP Q50-Q57), buzzer y LEDs activos en bajo, DIP en 0 cuando está en ON. Todo se corrige con parámetros de `pong_top`.
+* Las polaridades de `pong_top` (segmentos, dígitos, LEDs, DIP, buzzer: activos en bajo) son las que confirma el esquemático. Igual hay que mirarlas en la prueba física #3.
 
 
 ## 1. Niveles lógicos
@@ -118,14 +128,16 @@ El display de 8 dígitos, el buzzer y los LEDs van por la alimentación de la pr
 ## 5. Lista de revisión T10 (antes de PC4)
 
 - [x] Tarjeta identificada (A-C4E6E10) y pines tomados de la serigrafía.
-- [ ] Continuidad de los nueve pines del conector de expansión que usamos.
+- [x] Pines del conector confirmados contra el esquemático (P28, P30-P34, P42, P44, P49).
+- [ ] Continuidad de los nueve pines del conector de expansión que usamos (opcional, el esquemático ya coincide).
 - [ ] Tensión de cada banco usado (VCCIO) medida con multímetro.
 - [ ] Pines elegidos en `quartus/pong.qsf` y reporte de pines de Quartus revisado.
 - [ ] '125 alimentado a 5 V y verificado con la FPGA sin módulos conectados (salida en 5 V con osciloscopio).
 - [ ] Ninguna línea de 5 V llega a la FPGA (medir cada entrada con el receptor encendido).
 - [ ] Tierras comunes.
 - [ ] Corriente total medida con todo encendido. El peor caso real es el modo *display test* del MAX7219 (256 LEDs a brillo máximo); para medirlo basta cambiar temporalmente la palabra `0x0F00` por `0x0F01` en `max7219_tx.v`.
-- [ ] Polaridad del display de 8 dígitos, buzzer, LEDs y DIP confirmada (prueba física #3).
+- [x] Polaridad del display de 8 dígitos, LEDs, DIP y pulsadores confirmada en el esquemático (activos en bajo).
+- [ ] Verlo funcionar en la prueba física #3 y revisar que el buzzer quede en silencio en reposo.
 
 ## 6. Secuencia física de pruebas (de la guía, Sección X-B)
 
