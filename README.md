@@ -74,6 +74,7 @@ pong-fpga-digital1/
 │   └── logs/                 Evidencia: resultado de cada simulación
 ├── quartus/                  Proyecto de Quartus II (.qpf, .qsf, .sdc)
 ├── scripts/                  Animación, cronograma y revisión con Yosys
+├── caja/                     Corte láser de la caja y los controles (DXF + scripts)
 └── docs/                     Especificación, diseño lógico, verificación, hardware
 ```
 
@@ -179,6 +180,7 @@ Acuerdos del grupo:
 
 * [`docs/paso_a_paso/etapa1_pantalla.md`](docs/paso_a_paso/etapa1_pantalla.md): etapa 1, la pantalla (estructura, máquina de estados, tablas de verdad, ecuaciones y simulación). También está [en PDF](docs/paso_a_paso/etapa1_pantalla.pdf).
 * [`etapas/`](etapas/): el código de cada etapa.
+* [`caja/`](caja/): archivos DXF para cortar en láser la caja y los dos controles, con plantillas 1:1 y la lista de medidas por confirmar.
 * [`docs/figuras/`](docs/figuras/): Figura 1 nueva (estructura del circuito) y demás figuras en TikZ, listas para la guía en LaTeX.
 
 **Diseño completo:**

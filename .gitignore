@@ -40,3 +40,6 @@ etapas/*/db/
 etapas/*/incremental_db/
 docs/figuras/*.aux
 docs/figuras/*.log
+
+# Caja: el caché de matplotlib/ezdxf no se sube
+caja/__pycache__/
