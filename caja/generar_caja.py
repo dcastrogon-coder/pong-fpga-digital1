@@ -221,16 +221,29 @@ def construir_caja(P, prefijo, W, D, H, pos_t_largas, pos_t_cortas):
 #  Caja principal del Pong
 # ----------------------------------------------------------------------------
 def caja_principal(P):
+    """Hay dos formas de armar la caja, según el montaje que elijamos:
+
+    "protoboard" (la de ahora): la protoboard de los botones y del marcador
+        queda encajada en la tapa, a ras, para poder presionar los botones y
+        ver los displays. La tarjeta y otra protoboard (matrices, receptores
+        RF) van adentro, sobre la base. Así podemos meter el montaje tal cual
+        lo tenemos, sin pasarlo a pulsadores de panel.
+    "panel": la versión con pulsadores de 12 mm y ventanas para los displays
+        en la tapa (sirve si después pasamos todo a baquela).
+    """
     W, D, H = P["caja_ancho"], P["caja_fondo"], P["caja_alto"]
     T = P["material_espesor"]
+    proto = P.get("montaje", "protoboard") == "protoboard"
     piezas, info = construir_caja(P, "pong", W, D, H,
                                   pos_t_largas=[0.25 * W, 0.75 * W],
                                   pos_t_cortas=[0.5 * D])
     tapa, base = piezas["tapa"], piezas["base"]
     trasera, izq, der = piezas["trasera"], piezas["lateral_izq"], piezas["lateral_der"]
     hol = P["holgura_ventanas"]
+    Hw = info["Hw"]
+    extra = []
 
-    # ---------------- Tapa: pantalla, marcadores y botones ----------------
+    # ---------------- Tapa: pantalla de matrices ----------------
     cx, cy = W / 2, P["ventana_y"]
     L = P["matriz_lado"]
     nm = P["n_matrices"]
@@ -249,29 +262,56 @@ def caja_principal(P):
             for dy in (-sy, sy):
                 tapa.agujero(cx + dx, cy + dy, P["tornillo_diametro"])
 
-    # Ventanas de los dos displays de 7 segmentos (J1 a la izquierda)
-    marco_medio = vw / 2 + 8
-    if P["siete_segmentos"]:
-        dw, dh = P["display_ancho"] + 2 * hol, P["display_alto"] + 2 * hol
-        off = vw / 2 + P["display_separacion"] + dw / 2
-        for signo, nombre in ((-1, "J1"), (1, "J2")):
-            x = cx + signo * off
-            tapa.quitar(rect_centro(x, cy, dw, dh))
-            tapa.grabado += texto(P, nombre, x, cy - dh / 2 - 6, 5)
-        marco_medio = off + dw / 2 + 8
-    # Marco decorativo alrededor de la "pantalla"
-    tapa.marcado.append((puntos_rect_redondeado(cx, cy + 1.5 - 5, 2 * marco_medio, vh + 25, 4), True))
-
-    tapa.grabado += texto(P, "PONG", cx, min(D - 14, cy + vh / 2 + 20), 10, peso=800)
-
-    # Botones START / PAUSA / RESET
-    by, paso = P["botones_y"], P["botones_paso"]
-    r_b = P["boton_diametro"] / 2
-    for i, nombre in enumerate(("START", "PAUSA", "RESET")):
-        x = cx + (i - 1) * paso
-        tapa.agujero(x, by, P["boton_diametro"])
-        tapa.grabado += texto(P, nombre, x, by + r_b + 5, 4)
-        tapa.marcado.append((list(rect_redondeado(x, by, 2 * r_b + 6, 2 * r_b + 6, r_b + 3).exterior.coords)[:-1], True))
+    if proto:
+        # ---------- Protoboard encajada en la tapa ----------
+        # La ventana es del tamaño de la protoboard más una holgura, porque
+        # las protoboards traen unas pestañitas a los lados para unirse.
+        pw, pf, hp = P["proto_ancho"], P["proto_fondo"], P["holgura_proto"]
+        py = P["proto_tapa_y"]
+        ww, wf = pw + 2 * hp, pf + 2 * hp
+        tapa.quitar(rect_centro(cx, py, ww, wf))
+        tapa.marcado.append((puntos_rect_redondeado(cx, py, ww + 8, wf + 8, 3), True))
+        # Cuatro tornillos sostienen por debajo una lámina donde se pega la
+        # protoboard (con su propio adhesivo), de modo que quede a ras.
+        hx, hy = ww / 2 + 8, P["proto_soporte_dy"]
+        for dx in (-hx, hx):
+            for dy in (-hy, hy):
+                tapa.agujero(cx + dx, py + dy, P["tornillo_diametro"])
+        soporte = Pieza("pong_soporte_protoboard", 2 * hx + 12, 2 * hy + 20,
+                        "Lámina donde se pega la protoboard de la tapa")
+        for dx in (6, 6 + 2 * hx):
+            for dy in (10, 10 + 2 * hy):
+                soporte.agujero(dx, dy, P["tornillo_diametro"])
+        soporte.marcado.append((puntos_rect(soporte.ancho / 2 - pw / 2, soporte.alto / 2 - pf / 2,
+                                            soporte.ancho / 2 + pw / 2, soporte.alto / 2 + pf / 2), True))
+        extra.append(soporte)
+        # Ranura para que los cables de la protoboard bajen a la tarjeta
+        rw, rh = P["ranura_cables_tapa_ancho"], P["ranura_cables_tapa_alto"]
+        ry = py + wf / 2 + 4 + 2.5 + rh / 2
+        tapa.quitar(rect_redondeado(cx, ry, rw, rh, rh / 2 - 0.01))
+        # Marco de la pantalla y título
+        tapa.marcado.append((puntos_rect_redondeado(cx, cy, vw + 32, vh + 16, 4), True))
+        tapa.grabado += texto(P, "PONG", cx, D - 10, 9, peso=800)
+    else:
+        # ---------- Versión con pulsadores de panel ----------
+        marco_medio = vw / 2 + 8
+        if P["siete_segmentos"]:
+            dw, dh = P["display_ancho"] + 2 * hol, P["display_alto"] + 2 * hol
+            off = vw / 2 + P["display_separacion"] + dw / 2
+            for signo, nombre in ((-1, "J1"), (1, "J2")):
+                x = cx + signo * off
+                tapa.quitar(rect_centro(x, cy, dw, dh))
+                tapa.grabado += texto(P, nombre, x, cy - dh / 2 - 6, 5)
+            marco_medio = off + dw / 2 + 8
+        tapa.marcado.append((puntos_rect_redondeado(cx, cy + 1.5 - 5, 2 * marco_medio, vh + 25, 4), True))
+        tapa.grabado += texto(P, "PONG", cx, min(D - 14, cy + vh / 2 + 20), 10, peso=800)
+        by, paso = P["botones_y"], P["botones_paso"]
+        r_b = P["boton_diametro"] / 2
+        for i, nombre in enumerate(("START", "PAUSA", "RESET")):
+            x = cx + (i - 1) * paso
+            tapa.agujero(x, by, P["boton_diametro"])
+            tapa.grabado += texto(P, nombre, x, by + r_b + 5, 4)
+            tapa.marcado.append((list(rect_redondeado(x, by, 2 * r_b + 6, 2 * r_b + 6, r_b + 3).exterior.coords)[:-1], True))
 
     tapa.grabado += texto(P, "ELECTRÓNICA DIGITAL 1  ·  UNAL BOGOTÁ", cx, 11, 3.2, peso=600)
 
@@ -280,47 +320,68 @@ def caja_principal(P):
     # así que en vez de un hueco redondo dejamos una ranura en diagonal.
     # Cada ranura deja correr el tornillo unos milímetros en x y en y.
     tw, tf, m = P["tarjeta_ancho"], P["tarjeta_fondo"], P["tarjeta_agujero_margen"]
-    bx0 = (W - tw) / 2
+    bx0 = T + P["tarjeta_x0"] if proto else (W - tw) / 2
     by1 = D - T - P["tarjeta_separacion_pared_trasera"]
     by0 = by1 - tf
     bcx, bcy = (bx0 + bx0 + tw) / 2, (by0 + by1) / 2
     Ls = P["ranura_tarjeta_largo"]
-    for hx in (bx0 + m, bx0 + tw - m):
-        for hy in (by0 + m, by1 - m):
-            ux, uy = hx - bcx, hy - bcy
+    for hx_ in (bx0 + m, bx0 + tw - m):
+        for hy_ in (by0 + m, by1 - m):
+            ux, uy = hx_ - bcx, hy_ - bcy
             nrm = math.hypot(ux, uy)
             ux, uy = ux / nrm, uy / nrm
-            base.quitar(ranura_redonda(hx - ux * Ls / 2, hy - uy * Ls / 2,
-                                       hx + ux * Ls / 2, hy + uy * Ls / 2, P["tornillo_diametro"]))
+            base.quitar(ranura_redonda(hx_ - ux * Ls / 2, hy_ - uy * Ls / 2,
+                                       hx_ + ux * Ls / 2, hy_ + uy * Ls / 2, P["tornillo_diametro"]))
     base.referencia.append((puntos_rect(bx0, by0, bx0 + tw, by1), True))
     # Entre el borde de la tarjeta y los tornillos de atrás cabe justo una línea
     base.grabado += texto(P, "ATRÁS  (esta cara va hacia adentro)", W / 2, (by1 + D - T) / 2 + 0.5, 3, peso=600)
-    base.grabado += texto(P, "FRENTE", W / 2, 14, 3.5, peso=600)
     # Ventilación debajo de la tarjeta
     for i in range(7):
-        x = W / 2 + (i - 3) * 9
+        x = bcx + (i - 3) * 9
         base.quitar(ranura_redonda(x, bcy - 22, x, bcy + 22, 3))
+    info["tarjeta"] = (bx0, by0, bx0 + tw, by1)
+
+    if proto:
+        # Dónde va la protoboard de adentro (matrices y receptores RF): solo
+        # la marcamos, porque se pega con su propio adhesivo.
+        pw, pf = P["proto_ancho"], P["proto_fondo"]
+        ix0, iy0 = (W - pw) / 2, T + P["proto_interna_y0"]
+        base.marcado.append((puntos_rect(ix0, iy0, ix0 + pw, iy0 + pf), True))
+        base.grabado += texto(P, "PROTOBOARD", W / 2, iy0 + pf / 2, 4, peso=600)
+        info["proto_interna"] = (ix0, iy0, ix0 + pw, iy0 + pf)
+        info["proto_tapa"] = (cx - pw / 2, P["proto_tapa_y"] - pf / 2, cx + pw / 2, P["proto_tapa_y"] + pf / 2)
+    else:
+        base.grabado += texto(P, "FRENTE", W / 2, 14, 3.5, peso=600)
 
     # ---------------- Trasera: salida de cables y créditos ----------------
+    # Ojo: la trasera se mira desde afuera, así que su x va al revés (u = W - x)
     sw, sh, sy0 = P["salida_cables_ancho"], P["salida_cables_alto"], P["salida_cables_y"]
-    trasera.quitar(rect_redondeado(W / 2, sy0 + sh / 2, sw, sh, 2))
-    for dx in (-50, 50):            # antenas de los dos receptores RF
-        trasera.agujero(W / 2 + dx, 15, 3)
     lineas = [f"Pong en FPGA  ·  Electrónica Digital 1  ·  UNAL Bogotá  ·  {P['semestre']}"] + AUTORES
-    yt = sy0 + sh + 21
-    for i, s in enumerate(lineas):
-        tapa_h = 3.4 if i == 0 else 3.0
-        trasera.grabado += texto(P, s, W / 2, yt - i * 5.2, tapa_h, peso=700 if i == 0 else 500)
+    if proto:
+        u_sal = W - bcx                       # la salida queda detrás de la tarjeta
+        trasera.quitar(rect_redondeado(u_sal, sy0 + sh / 2, sw, sh, 2))
+        for du in (-sw / 2 + 6, sw / 2 - 6):  # antenas, encima de la salida
+            trasera.agujero(u_sal + du, sy0 + sh + 8, 3)
+        u_txt = (u_sal - sw / 2) / 2 + 2      # créditos en el pedazo libre
+        yt = sy0 + sh + 14
+        for i, s in enumerate(lineas):
+            trasera.grabado += texto(P, s, u_txt, yt - i * 5.2 - (0 if i == 0 else 0.6),
+                                     3.0 if i == 0 else 2.8, peso=700 if i == 0 else 500)
+    else:
+        trasera.quitar(rect_redondeado(W / 2, sy0 + sh / 2, sw, sh, 2))
+        for dx in (-50, 50):            # antenas de los dos receptores RF
+            trasera.agujero(W / 2 + dx, 15, 3)
+        yt = sy0 + sh + 21
+        for i, s in enumerate(lineas):
+            trasera.grabado += texto(P, s, W / 2, yt - i * 5.2, 3.4 if i == 0 else 3.0, peso=700 if i == 0 else 500)
 
     # ---------------- Laterales: ventilación ----------------
-    Hw = info["Hw"]
     for lat in (izq, der):
         for i in range(6):
             y = D / 2 + (i - 2.5) * 8
             lat.quitar(ranura_redonda(y, Hw / 2 - 12, y, Hw / 2 + 12, 3))
 
     # ---------------- Barras para sostener las matrices ----------------
-    extra = []
     if P["sujecion_matrices"]:
         barra = Pieza("pong_barra_matrices", 2 * sx + 8, 10, "Barra que aprieta las matrices por detrás")
         barra.agujero(4, 5, P["tornillo_diametro"])
@@ -425,6 +486,19 @@ def acomodar(piezas, hoja_w, hoja_h, margen=6.0, aire=4.0):
     return hojas
 
 
+def hojas_por_grupo(piezas, hoja_w, hoja_h):
+    """La caja y los controles van en hojas separadas: así podemos cortar la
+    caja ya y dejar los controles para cuando el circuito inalámbrico esté listo."""
+    grupos = [("caja", [p for p in piezas if p.nombre.startswith("pong_")]),
+              ("controles", [p for p in piezas if p.nombre.startswith("control_")])]
+    salida = []
+    for nombre, lista in grupos:
+        hojas = acomodar(lista, hoja_w, hoja_h)
+        for k, h in enumerate(hojas, 1):
+            salida.append((nombre if len(hojas) == 1 else f"{nombre}{k}", h))
+    return salida
+
+
 # ----------------------------------------------------------------------------
 #  Escritura de los DXF
 # ----------------------------------------------------------------------------
@@ -495,13 +569,13 @@ def main():
         escribir_hoja([Colocada(p, 0, 0, False)], os.path.join(d_piezas, f"{p.nombre}.dxf"), P, False)
 
     hw, hh = P["hoja_ancho"], P["hoja_alto"]
-    hojas = acomodar(piezas, hw, hh)
-    for i, hoja in enumerate(hojas, 1):
-        escribir_hoja(hoja, os.path.join(d_hojas, f"hoja_{i}_de_{len(hojas)}_{int(hw)}x{int(hh)}mm.dxf"), P, False)
-        escribir_hoja(hoja, os.path.join(d_guia, f"hoja_{i}_guia.dxf"), P, True, marco=(hw, hh))
+    hojas = hojas_por_grupo(piezas, hw, hh)
+    for i, (grupo, hoja) in enumerate(hojas, 1):
+        escribir_hoja(hoja, os.path.join(d_hojas, f"hoja_{i}_{grupo}_{int(hw)}x{int(hh)}mm.dxf"), P, False)
+        escribir_hoja(hoja, os.path.join(d_guia, f"hoja_{i}_{grupo}_guia.dxf"), P, True, marco=(hw, hh))
 
     print(f"Piezas distintas: {len(piezas)}  |  láminas a cortar: {sum(p.cantidad for p in piezas)}")
-    print(f"Hojas de {hw:.0f} x {hh:.0f} mm: {len(hojas)}")
+    print(f"Hojas de {hw:.0f} x {hh:.0f} mm: {len(hojas)} ({', '.join(n for n, _ in hojas)})")
     ip = info["principal"]
     print(f"Caja principal {ip['W']:.0f} x {ip['D']:.0f} x {ip['H']:.0f} mm, "
           f"{ip['n_dedos']} dedos de {ip['seg']:.2f} mm por esquina")

@@ -143,16 +143,45 @@ def componentes(P, info, explotar=0.0):
                     continue
                 out.append(bloque(cx + s * off - P["display_ancho"] / 2 + sx0, cy - P["display_alto"] / 2 + sy0,
                                   ztapa + T - 0.31, sw, sh, 0.3, (0.95, 0.15, 0.10)))
-    for i, col in enumerate(((0.10, 0.65, 0.25), (0.95, 0.75, 0.10), (0.85, 0.12, 0.12))):
-        x = cx + (i - 1) * P["botones_paso"]
-        out.append(cilindro(x, P["botones_y"], ztapa + T, P["boton_diametro"] / 2 - 0.6, 3.5, col))
+    proto = P.get("montaje", "protoboard") == "protoboard"
+    blanco, gris = (0.93, 0.93, 0.90), (0.18, 0.18, 0.20)
+    if proto:
+        # Protoboard de la tapa, a ras, con los 7 pulsadores y los 2 displays
+        x0, y0, x1, y1 = info["proto_tapa"]
+        zp = H - P["proto_alto"] + 1.6 * e
+        out.append(bloque(x0, y0, zp, x1 - x0, y1 - y0, P["proto_alto"], blanco))
+        out.append(bloque(x0 - 12, y0 - 4.5, zp - T, (x1 - x0) + 24, (y1 - y0) + 9, T, MADERA))   # soporte
+        ytop = zp + P["proto_alto"]
+        for k in range(2):  # líneas de los rieles de alimentación
+            for yy, col in ((y0 + 3, (0.2, 0.3, 0.8)), (y1 - 3, (0.85, 0.2, 0.2))):
+                out.append(bloque(x0 + 8, yy - 0.3, ytop, (x1 - x0) - 16, 0.6, 0.05, col))
+        xm = (x0 + x1) / 2
+        ym = (y0 + y1) / 2
+        for dx in (-72, -58, -16, 0, 16, 58, 72):
+            out.append(bloque(xm + dx - 3, ym - 9, ytop, 6, 6, 3.5, gris))
+            out.append(cilindro(xm + dx, ym - 6, ytop + 3.5, 1.7, 1.5, (0.05, 0.05, 0.05)))
+        for s in (-1, 1):
+            xd = xm + s * 37
+            out.append(bloque(xd - 6.3, ym, ytop, 12.6, 19, 7, (0.15, 0.15, 0.15)))
+            for (sx0, sy0, sw, sh) in ((2.5, 16, 7.6, 1.2), (2.5, 8.9, 7.6, 1.2), (2.5, 1.8, 7.6, 1.2),
+                                        (1.6, 9.8, 1.2, 6.4), (9.8, 9.8, 1.2, 6.4), (1.6, 2.7, 1.2, 6.4), (9.8, 2.7, 1.2, 6.4)):
+                if s == -1 and (sx0, sy0) in ((1.6, 2.7), (2.5, 8.9)):
+                    continue
+                out.append(bloque(xd - 6.3 + sx0, ym + sy0, ytop + 7, sw, sh, 0.05, (0.95, 0.15, 0.10)))
+    else:
+        for i, col in enumerate(((0.10, 0.65, 0.25), (0.95, 0.75, 0.10), (0.85, 0.12, 0.12))):
+            x = cx + (i - 1) * P["botones_paso"]
+            out.append(cilindro(x, P["botones_y"], ztapa + T, P["boton_diametro"] / 2 - 0.6, 3.5, col))
     # La tarjeta FPGA sobre separadores (solo en el despiece; con la caja
     # cerrada no se ve y matplotlib a veces la deja "asomar" por error)
     if e == 0:
         return out
-    tw, tf = P["tarjeta_ancho"], P["tarjeta_fondo"]
-    by1 = D - T - P["tarjeta_separacion_pared_trasera"]
-    out.append(bloque((W - tw) / 2, by1 - tf, T + 10 - 1.2 * e, tw, tf, 1.6, (0.10, 0.35, 0.65)))
+    bx0, by0, bx1, by1 = info["tarjeta"]
+    sep = P.get("separador_tarjeta", 10)
+    out.append(bloque(bx0, by0, T + sep - 1.2 * e, bx1 - bx0, by1 - by0, 1.6, (0.10, 0.35, 0.65)))
+    if proto:
+        x0, y0, x1, y1 = info["proto_interna"]
+        out.append(bloque(x0, y0, T - 1.2 * e, x1 - x0, y1 - y0, P["proto_alto"], blanco))
     return out
 
 
@@ -254,12 +283,12 @@ def dibujar_pieza_2d(ax, pieza, ox, oy, k=0.0, ancho_linea=0.35):
         ax.plot(x, y, color="#888888", lw=ancho_linea * 0.8, ls="--")
 
 
-def vista_hoja(P, hojas, ruta):
+def vista_hoja(P, hoja, ruta, titulo=""):
     hw, hh = P["hoja_ancho"], P["hoja_alto"]
     fig = plt.figure(figsize=(15, 15 * hh / hw + 0.6), dpi=150)
     ax = fig.add_axes([0.01, 0.01, 0.98, 0.94])
     ax.plot([0, hw, hw, 0, 0], [0, 0, hh, hh, 0], color="#bbbbbb", lw=0.8)
-    for col in hojas[0]:
+    for col in hoja:
         p = col.pieza
         # Para dibujar rotada reusamos la geometría ya transformada
         q = gc.Pieza(p.nombre, 1, 1)
@@ -275,7 +304,7 @@ def vista_hoja(P, hojas, ruta):
     ax.set_ylim(-5, hh + 5)
     ax.set_aspect("equal")
     ax.axis("off")
-    fig.suptitle(f"Hoja de corte {hw:.0f} × {hh:.0f} mm   —   rojo: cortar   ·   azul: grabar relleno   ·   "
+    fig.suptitle(f"{titulo}Hoja de {hw:.0f} × {hh:.0f} mm   —   rojo: cortar   ·   azul: grabar relleno   ·   "
                  "verde: marcar suave   ·   gris punteado: solo referencia", fontsize=10)
     fig.savefig(ruta, facecolor="white")
     plt.close(fig)
@@ -314,10 +343,13 @@ def main():
     os.makedirs(os.path.join(AQUI, "img"), exist_ok=True)
     os.makedirs(os.path.join(AQUI, "pdf"), exist_ok=True)
     vista_3d(P, piezas, info, os.path.join(AQUI, "img", "caja_3d.png"))
-    hojas = gc.acomodar(lista, P["hoja_ancho"], P["hoja_alto"])
-    vista_hoja(P, hojas, os.path.join(AQUI, "img", "hoja_corte.png"))
+    for f in os.listdir(os.path.join(AQUI, "img")):
+        if f.startswith("hoja_"):
+            os.remove(os.path.join(AQUI, "img", f))
+    for grupo, hoja in gc.hojas_por_grupo(lista, P["hoja_ancho"], P["hoja_alto"]):
+        vista_hoja(P, hoja, os.path.join(AQUI, "img", f"hoja_{grupo}.png"), titulo=f"{grupo.upper()}  ·  ")
     plantillas(P, piezas, os.path.join(AQUI, "pdf", "plantillas_1a1_carta.pdf"))
-    print("Listo: img/caja_3d.png, img/hoja_corte.png, pdf/plantillas_1a1_carta.pdf")
+    print("Listo: img/caja_3d.png, img/hoja_*.png, pdf/plantillas_1a1_carta.pdf")
 
 
 if __name__ == "__main__":

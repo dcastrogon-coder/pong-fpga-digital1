@@ -108,8 +108,32 @@ def holguras(P, piezas, info):
     revisar(P["tarjeta_ancho"] <= W - 2 * T - 10 and P["tarjeta_fondo"] <= D - 2 * T - 10,
             f"la tarjeta {P['tarjeta_ancho']:.0f}x{P['tarjeta_fondo']:.0f} cabe en el interior {W-2*T:.0f}x{D-2*T:.0f}")
     alto_int = H - 2 * T
-    # Abajo: separador 10 + PCB 1.6 + conector JTAG ~ 12; arriba: módulo de matrices colgando ~ 18
-    revisar(10 + 1.6 + 12 + 18 + 5 <= alto_int, f"altura interior {alto_int:.0f} mm alcanza para tarjeta (~24) + matrices (~18) + aire")
+    sep = P.get("separador_tarjeta", 10)
+    # Abajo: separador + PCB 1.6 + conector JTAG ~ 12; arriba: módulo de matrices colgando ~ 18
+    revisar(sep + 1.6 + 12 + 18 + 5 <= alto_int, f"altura interior {alto_int:.0f} mm alcanza para tarjeta (~{sep+13.6:.0f}) + matrices (~18) + aire")
+    if P.get("montaje", "protoboard") == "protoboard":
+        from shapely.geometry import box
+        tj = box(*info["tarjeta"])
+        pi = box(*info["proto_interna"])
+        revisar(tj.distance(pi) >= 3, f"tarjeta y protoboard de adentro no se montan una sobre otra (quedan a {tj.distance(pi):.1f} mm)")
+        interior = box(T, T, W - T, D - T)
+        revisar(interior.contains(tj) and interior.contains(pi), "tarjeta y protoboard quedan dentro de las paredes")
+        # La proto de la tapa queda a ras: su cara de abajo está a H - alto_proto,
+        # y debajo va la lámina de soporte (T). Debajo de eso tiene que caber la
+        # proto de adentro con sus cables parados (~ 8,5 + 18 mm).
+        z_soporte = H - P["proto_alto"] - T
+        z_cables = T + P["proto_alto"] + 18
+        revisar(z_soporte - z_cables >= 10, f"entre la proto de adentro con cables ({z_cables:.0f} mm) y el soporte de la de arriba ({z_soporte:.0f} mm) quedan {z_soporte - z_cables:.0f} mm")
+        tapa = piezas["pong_tapa"]
+        sop = piezas["pong_soporte_protoboard"]
+        cx, py = W / 2, P["proto_tapa_y"]
+        ht = sorted((round(x - cx, 3), round(y - py, 3)) for (x, y, r) in tapa.circulos if abs(y - py) < 40 and 60 < abs(x - cx) < 100)
+        hs = sorted((round(x - sop.ancho / 2, 3), round(y - sop.alto / 2, 3)) for (x, y, r) in sop.circulos)
+        revisar(ht == hs, f"los 4 tornillos del soporte coinciden con los 4 de la tapa ({len(hs)} de {len(ht)})")
+        ventana = box(cx - P["proto_ancho"] / 2, py - P["proto_fondo"] / 2, cx + P["proto_ancho"] / 2, py + P["proto_fondo"] / 2)
+        lamina = box(cx - sop.ancho / 2, py - sop.alto / 2, cx + sop.ancho / 2, py + sop.alto / 2)
+        revisar(ventana.within(lamina),
+                "la protoboard de la tapa queda completa encima de su lámina de soporte")
     tapa = piezas["pong_tapa"]
     revisar(tapa.cuerpo.is_valid and len(tapa.cuerpo.interiors) >= 1, "la tapa tiene ventanas y es una geometría válida")
     for p in piezas.values():

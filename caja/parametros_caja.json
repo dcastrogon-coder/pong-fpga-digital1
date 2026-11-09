@@ -1,58 +1,59 @@
 {
-  "_comentario": "Medidas en milímetros. Si al medir los componentes reales algo no cuadra, lo cambiamos aquí y volvemos a correr generar_caja.py; no hay que tocar el código.",
-
+  "_comentario": "Medidas en milímetros. Montaje en protoboard: la proto de botones y marcador va encajada en la tapa y la otra adentro. Si algo no cuadra al medir, lo cambiamos aquí y volvemos a correr generar_caja.py.",
   "material_espesor": 3.0,
   "kerf": 0.15,
   "ancho_dedo": 12.0,
   "hoja_ancho": 600.0,
   "hoja_alto": 400.0,
-
-  "caja_ancho": 220.0,
-  "caja_fondo": 150.0,
-  "caja_alto": 65.0,
-
+  "caja_ancho": 240.0,
+  "caja_fondo": 180.0,
+  "caja_alto": 70.0,
   "n_matrices": 2,
   "matriz_lado": 32.0,
   "matriz_separacion": 0.0,
   "holgura_ventanas": 0.4,
-  "ventana_y": 95.0,
-
+  "ventana_y": 138.0,
   "sujecion_matrices": true,
   "sujecion_dx": 40.0,
   "sujecion_dy": 10.0,
-
-  "siete_segmentos": true,
+  "siete_segmentos": false,
   "display_ancho": 12.6,
   "display_alto": 19.0,
   "display_separacion": 28.0,
-
   "boton_diametro": 12.0,
   "botones_y": 38.0,
   "botones_paso": 50.0,
-
   "tarjeta_ancho": 108.0,
   "tarjeta_fondo": 100.0,
   "tarjeta_agujero_margen": 4.0,
   "tarjeta_separacion_pared_trasera": 8.0,
   "ranura_tarjeta_largo": 10.0,
-
-  "salida_cables_ancho": 44.0,
-  "salida_cables_alto": 18.0,
-  "salida_cables_y": 6.0,
-
+  "salida_cables_ancho": 60.0,
+  "salida_cables_alto": 22.0,
+  "salida_cables_y": 13.5,
   "control_ancho": 110.0,
   "control_fondo": 65.0,
   "control_alto": 38.0,
   "interruptor_ancho": 19.2,
   "interruptor_alto": 12.8,
   "led_diametro": 5.0,
-
   "tornillo_diametro": 3.2,
   "tuerca_ancho": 5.8,
   "tuerca_espesor": 2.6,
   "ranura_t_largo": 10.5,
   "ranura_t_tuerca_desde": 6.0,
-
   "fuente_texto": "DejaVu Sans",
-  "semestre": "2026-2"
+  "semestre": "2026-2",
+  "montaje": "protoboard",
+  "proto_ancho": 165.0,
+  "proto_fondo": 55.0,
+  "proto_alto": 8.5,
+  "holgura_proto": 0.8,
+  "proto_tapa_y": 62.0,
+  "proto_soporte_dy": 22.0,
+  "proto_interna_y0": 7.0,
+  "ranura_cables_tapa_ancho": 150.0,
+  "ranura_cables_tapa_alto": 9.0,
+  "tarjeta_x0": 9.0,
+  "separador_tarjeta": 12.0
 }
