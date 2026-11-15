@@ -1,6 +1,6 @@
 # Hardware del prototipo (versión F6)
 
-Todo lo de esta página sale de las memorias de F4, F6 y F7 ([`fases/`](../fases/)). Es el montaje que está funcionando en protoboard. Los esquemas definitivos y las dos PCB quedan para F8 (KiCad).
+Todo lo de esta página lo sacamos de nuestras memorias de F4, F6 y F7 ([`fases/`](../fases/)). Es el montaje que tenemos funcionando en protoboard. Los esquemas definitivos y las dos PCB los vamos a hacer en F8 (KiCad).
 
 ![Arquitectura del montaje](../informes/figuras/fig_sistema.png)
 
@@ -115,10 +115,10 @@ Es la secuencia que usamos en F6:
 
 Para apagar: **primero** la FPGA, **después** la fuente de 5 V.
 
-La configuración por `.sof` se pierde al quitar la alimentación de la FPGA, así que hay que volver a programar en cada encendido.
+La configuración por `.sof` se borra al quitarle la alimentación a la FPGA, así que toca volver a programarla en cada encendido.
 
 ## Limitaciones conocidas
 
 * Con la FPGA apagada o sin configurar y los 5 V encendidos pueden aparecer patrones transitorios en las matrices y los displays.
-* Quartus deja la advertencia 169177 sobre compatibilidad LVTTL 3,3/3,0/2,5 V en las entradas; está pendiente revisarla con la nota de aplicación AN 447.
+* Quartus deja la advertencia 169177 sobre compatibilidad LVTTL 3,3/3,0/2,5 V en las entradas; nos falta revisarla con la nota de aplicación AN 447.
 * No hay arranque autónomo: la tarjeta trae una memoria de configuración serial (M25P16), pero todavía no la hemos programado.

@@ -2,7 +2,7 @@
 
 Esta carpeta tiene el núcleo del Pong tal como quedó después de **F4**: los 15 módulos de F3 con las dos correcciones de orientación de F4, más el top de la prueba visual.
 
-> ⚠️ El top final del prototipo (`pong_f6_integracion_top.v`) y el núcleo de F5 (`pong_f5_core.v`, con los mandos cableados y el movimiento diagonal) todavía no están en el repositorio. Ver [`fases/F5_controles_cableados/`](../fases/F5_controles_cableados/).
+Todavía nos falta subir el top final del prototipo (`pong_f6_integracion_top.v`) y el núcleo de F5 (`pong_f5_core.v`, con los mandos cableados y el movimiento diagonal). Ver [`fases/F5_controles_cableados/`](../fases/F5_controles_cableados/).
 
 ![Jerarquía de módulos](../informes/figuras/fig_rtl.png)
 
@@ -33,7 +33,7 @@ La máquina de estados del juego está en [`fig_fsm`](../informes/figuras/fig_fs
 
 ## Correr las pruebas
 
-Las simulaciones originales se hicieron en Questa. Para repetirlas sin instalar nada pesado usamos Icarus Verilog:
+Las simulaciones originales las hicimos en Questa. Para repetirlas sin instalar nada pesado usamos Icarus Verilog:
 
 ```bash
 sudo apt install iverilog        # en Ubuntu o WSL
@@ -41,7 +41,7 @@ cd fpga
 bash sim/correr_pruebas.sh
 ```
 
-Resultado actual (también lo corre GitHub en cada cambio, pestaña *Actions*):
+Así nos da ahora (GitHub también lo corre cada vez que subimos algo, pestaña *Actions*):
 
 ```
 =========================== RESUMEN ===========================
@@ -67,7 +67,7 @@ Resultado actual (también lo corre GitHub en cada cambio, pestaña *Actions*):
 Pasan: 19   Fallan: 0
 ```
 
-Los registros quedan en [`sim/resultados/`](sim/resultados/).
+Los registros de cada prueba quedan en [`sim/resultados/`](sim/resultados/).
 
 ## Compilar y programar en Quartus
 
@@ -75,4 +75,4 @@ Los registros quedan en [`sim/resultados/`](sim/resultados/).
 2. *Processing → Start Compilation*.
 3. *Tools → Programmer*, USB-Blaster en modo JTAG, cargar `output_files/pong_top.sof` y *Start*.
 
-Con este top solo se ven las paletas y la pelota en su posición inicial (prueba de F4). Para el juego completo con mandos y marcador hace falta el top de F6. La secuencia de encendido y las conexiones están en [`hardware/`](../hardware/).
+Con este top solo se ven las paletas y la pelota en su posición inicial (prueba de F4). Para el juego completo con mandos y marcador hace falta el top de F6, que vamos a subir. La secuencia de encendido y las conexiones están en [`hardware/`](../hardware/).

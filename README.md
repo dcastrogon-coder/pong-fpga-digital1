@@ -11,9 +11,9 @@ Universidad Nacional de Colombia, sede Bogotá · Departamento de Ingeniería El
 
 ![Prueba de F4: las dos matrices con las paletas y la pelota](fases/F4_interfaz_visual/F4_Prueba_Visual_MAX7219.png)
 
-## ¿Qué es?
+## De qué se trata
 
-Un Pong para dos jugadores hecho **solo con lógica digital** (sin Arduino ni ESP32) sobre una FPGA **Cyclone IV E EP4CE10E22C8N** en la tarjeta **A-C4E6E10**, descrito en Verilog y compilado en Quartus Prime 25.1 Lite.
+Hicimos un Pong para dos jugadores **solo con lógica digital** (sin Arduino ni ESP32) sobre una FPGA **Cyclone IV E EP4CE10E22C8N** en la tarjeta **A-C4E6E10**. Todo lo escribimos en Verilog y lo compilamos en Quartus Prime 25.1 Lite.
 
 * El tablero es de **8 × 16 LED**: dos módulos FC-16 de 8 × 8 en cascada, con controlador GC7219C (compatible con MAX7219).
 * Cada jugador mueve su paleta con un **mando cableado** (UP, DOWN y DETECT). Si un mando se desconecta, el juego se pausa.
@@ -30,25 +30,25 @@ Un Pong para dos jugadores hecho **solo con lógica digital** (sin Arduino ni ES
 | Informe de avance | [`informes/avance/informe_avance.pdf`](informes/avance/informe_avance.pdf) |
 | Informe del Desafío (final) | [`informes/desafio/informe_desafio.pdf`](informes/desafio/informe_desafio.pdf) |
 
-Siguen la estructura que pidió el profesor; los detalles y los supuestos que hay que revisar antes de entregar están en [`informes/`](informes/).
+Los dos siguen la estructura que pidió el profesor. Las figuras y cómo volver a compilarlos están en [`informes/`](informes/).
 
 ## Estado por fase
 
 Desarrollamos el proyecto con la ruta de nuestra [guía metodológica](documentos_base/guia_metodologica.pdf): *Requisitos → Modelo lógico → RTL → Simulación → Síntesis → Hardware*.
 
 | Fase | Contenido | Estado |
-|------|-----------|:------:|
-| [F0](fases/F0_especificacion/) | Especificación funcional, requisitos R01–R12 | ✅ |
-| [F1](fases/F1_arquitectura/) | Arquitectura por bloques | ✅ |
-| [F2](fases/F2_diseno_logico/) | Diseño lógico formal: tablas, ecuaciones y FSM | ✅ |
-| [F3](fases/F3_rtl_simulacion/) | Verilog y simulación: 19 bancos de prueba, 49/49 comprobaciones de integración | ✅ |
-| [F4](fases/F4_interfaz_visual/) | Las dos matrices funcionando en la tarjeta | ✅ |
-| [F5](fases/F5_controles_cableados/) | Mandos cableados, movimiento diagonal, juego completo en la tarjeta | ✅ (faltan la memoria y el código) |
-| [F6](fases/F6_integracion_montaje/) | Marcador de 7 segmentos, montaje completo; partida real hasta 9–6 | ✅ |
-| [F7](fases/F7_informe_protoboard/) | Informe del funcionamiento en protoboard | ✅ |
-| F8 | Esquemas y placas en KiCad | ⏳ |
+|------|-----------|--------|
+| [F0](fases/F0_especificacion/) | Especificación funcional, requisitos R01–R12 | Terminada |
+| [F1](fases/F1_arquitectura/) | Arquitectura por bloques | Terminada |
+| [F2](fases/F2_diseno_logico/) | Diseño lógico formal: tablas, ecuaciones y FSM | Terminada |
+| [F3](fases/F3_rtl_simulacion/) | Verilog y simulación: 19 bancos de prueba, 49/49 comprobaciones de integración | Terminada |
+| [F4](fases/F4_interfaz_visual/) | Las dos matrices funcionando en la tarjeta | Terminada |
+| [F5](fases/F5_controles_cableados/) | Mandos cableados, movimiento diagonal, juego completo en la tarjeta | Terminada (nos falta subir la memoria y el código) |
+| [F6](fases/F6_integracion_montaje/) | Marcador de 7 segmentos, montaje completo; partida real hasta 9–6 | Terminada |
+| [F7](fases/F7_informe_protoboard/) | Informe del funcionamiento en protoboard | Terminada |
+| F8 | Esquemas y placas en KiCad | En camino |
 
-Los cambios frente a la propuesta (controles cableados en lugar de RF, pelota en diagonal, orientación de las matrices y adaptador de niveles) están explicados en [`fases/README.md`](fases/README.md).
+En el camino cambiamos algunas cosas de la propuesta (controles cableados en lugar de RF, pelota en diagonal, orientación de las matrices y adaptador de niveles). Las explicamos en [`fases/README.md`](fases/README.md).
 
 ## Cómo está organizado
 
@@ -73,7 +73,7 @@ sudo apt install iverilog      # Ubuntu o WSL
 bash fpga/sim/correr_pruebas.sh
 ```
 
-Deben pasar los 19 bancos de prueba. GitHub corre lo mismo en cada cambio (pestaña *Actions*). Más detalle en [`fpga/`](fpga/).
+Deben pasar los 19 bancos de prueba. GitHub corre lo mismo cada vez que subimos algo (pestaña *Actions*). Más detalle en [`fpga/`](fpga/).
 
 ## Cómo compilar y programar
 
@@ -82,9 +82,9 @@ Deben pasar los 19 bancos de prueba. GitHub corre lo mismo en cada cambio (pesta
 3. Encender **primero** la fuente de 5 V y **después** la tarjeta.
 4. *Tools → Programmer*, USB-Blaster en JTAG, cargar `output_files/pong_top.sof` y *Start*.
 
-La configuración por JTAG se pierde al apagar. Las conexiones y la secuencia completa de encendido y apagado están en [`hardware/`](hardware/).
+Ojo: la configuración por JTAG se borra al apagar la tarjeta, así que toca programarla en cada encendido. Las conexiones y la secuencia completa de encendido y apagado las dejamos en [`hardware/`](hardware/).
 
-> ⚠️ El top que está en el repositorio es el de la prueba de F4 (solo pantalla). Falta subir el código de F5 y F6 (`pong_f5_core.v`, `pong_f6_integracion_top.v` y los módulos de los mandos cableados) para que se pueda compilar el juego completo desde aquí.
+Por ahora el top que está aquí es el de la prueba de F4 (solo pantalla). Todavía nos falta subir el código de F5 y F6 (`pong_f5_core.v`, `pong_f6_integracion_top.v` y los módulos de los mandos cableados) para poder compilar el juego completo desde el repositorio.
 
 ## Cómo trabajamos en el repositorio
 
@@ -106,10 +106,6 @@ Los tres somos colaboradores, así que cualquiera puede modificarlo.
 
 * Los comentarios del código van en primera persona del plural ("aquí calculamos...", "lo dejamos así porque...").
 * Si cambiamos una regla, un pin o un componente, lo anotamos en [`fases/README.md`](fases/README.md).
-
-## Otras versiones
-
-La rama [`alternativa-8x32-tarjeta`](../../tree/alternativa-8x32-tarjeta) guarda un diseño alternativo que hicimos antes (módulo de cuatro matrices 8 × 32 y marcador en el display de la tarjeta). No es el que se montó; lo dejamos como referencia.
 
 ## Referencias
 

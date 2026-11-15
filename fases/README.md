@@ -6,21 +6,21 @@ Desarrollamos el Pong siguiendo la ruta de nuestra guía metodológica ([`docume
 Requisitos → Modelo lógico → RTL → Simulación → Síntesis → Hardware
 ```
 
-Cada fase tiene su carpeta con el documento entregado y la evidencia que la respalda. Las fechas son las de los documentos y de los archivos de cada fase.
+Cada fase tiene su carpeta con el documento que entregamos y la evidencia que la respalda. Las fechas son las de los documentos y de los archivos de cada fase.
 
 | Fase | Contenido | Fecha | Punto de control | Evidencia principal |
 |------|-----------|-------|:----------------:|---------------------|
-| [F0](F0_especificacion/) | Especificación funcional, rev. 1.2 (con pausa manual) | 2 nov 2026 | PC0 ✅ | Reglas, requisitos R01–R12, FSM de 6 estados |
-| [F1](F1_arquitectura/) | Arquitectura por bloques, rev. 1.1 | 2 nov 2026 | PC1 ✅ | Contratos de entradas y salidas de 13 módulos |
-| [F2](F2_diseno_logico/) | Diseño lógico formal, rev. 1.2 | 2 nov 2026 | PC1 ✅ | Tablas de verdad y de transición, ecuaciones, FSM del juego y del transmisor |
-| [F3](F3_rtl_simulacion/) | RTL en Verilog y simulación modular | 3 nov 2026 | PC2–PC3 ✅ | 15 archivos RTL, 19 testbenches, 49/49 comprobaciones de integración, síntesis sin errores |
-| [F4](F4_interfaz_visual/) | Interfaz visual con las dos matrices MAX7219 | 7 nov 2026 | PC4 ✅ | Compilación completa, programación por JTAG, foto de la matriz |
-| [F5](F5_controles_cableados/) | Controles cableados y validación física del juego | 14 nov 2026 | PC5 ✅ | Juego completo en la tarjeta (documento y código pendientes de subir) |
-| [F6](F6_integracion_montaje/) | Integración del marcador de 7 segmentos, síntesis y montaje | 14 nov 2026 | PC5–PC6 ✅ | Partida real 9–6, victoria, RESET y nueva partida; *slack* positivo |
-| [F7](F7_informe_protoboard/) | Informe técnico del funcionamiento en protoboard | 15 nov 2026 | PC6 🟡 | Explicación lógica y física del prototipo |
-| F8 | Esquemas y PCB en KiCad | pendiente | — | — |
+| [F0](F0_especificacion/) | Especificación funcional, rev. 1.2 (con pausa manual) | 2 nov 2026 | PC0 | Reglas, requisitos R01–R12, FSM de 6 estados |
+| [F1](F1_arquitectura/) | Arquitectura por bloques, rev. 1.1 | 2 nov 2026 | PC1 | Contratos de entradas y salidas de 13 módulos |
+| [F2](F2_diseno_logico/) | Diseño lógico formal, rev. 1.2 | 2 nov 2026 | PC1 | Tablas de verdad y de transición, ecuaciones, FSM del juego y del transmisor |
+| [F3](F3_rtl_simulacion/) | RTL en Verilog y simulación modular | 3 nov 2026 | PC2–PC3 | 15 archivos RTL, 19 testbenches, 49/49 comprobaciones de integración, síntesis sin errores |
+| [F4](F4_interfaz_visual/) | Interfaz visual con las dos matrices MAX7219 | 7 nov 2026 | PC4 | Compilación completa, programación por JTAG, foto de la matriz |
+| [F5](F5_controles_cableados/) | Controles cableados y validación física del juego | 14 nov 2026 | PC5 | Juego completo en la tarjeta (nos falta subir el documento y el código) |
+| [F6](F6_integracion_montaje/) | Integración del marcador de 7 segmentos, síntesis y montaje | 14 nov 2026 | PC5–PC6 | Partida real 9–6, victoria, RESET y nueva partida; *slack* positivo |
+| [F7](F7_informe_protoboard/) | Informe técnico del funcionamiento en protoboard | 15 nov 2026 | PC6 | Explicación lógica y física del prototipo |
+| F8 | Esquemas y PCB en KiCad | en camino | — | — |
 
-Los informes que pide el profesor, armados a partir de estas fases, están en [`informes/`](../informes/).
+Los informes que pidió el profesor los armamos a partir de estas fases y están en [`informes/`](../informes/).
 
 ## Cómo cambió el diseño entre fases
 

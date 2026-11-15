@@ -1,6 +1,6 @@
 # Informes para el profesor
 
-Los dos informes están en LaTeX (formato IEEE) y ya compilados en PDF.
+Los dos informes los hicimos en LaTeX (formato IEEE) y aquí también están los PDF.
 
 | Informe | PDF | Estructura que pidió el profesor |
 |---------|-----|----------------------------------|
@@ -9,7 +9,7 @@ Los dos informes están en LaTeX (formato IEEE) y ya compilados en PDF.
 
 ## Figuras
 
-Todas están en [`figuras/`](figuras/), en TikZ, y se usan en los dos informes y en los README.
+Las dibujamos en TikZ y las usamos en los dos informes y en los README. Están en [`figuras/`](figuras/).
 
 | Figura | Qué muestra |
 |--------|-------------|
@@ -31,9 +31,8 @@ cd ../avance  && pdflatex informe_avance.tex  && pdflatex informe_avance.tex
 cd ../desafio && pdflatex informe_desafio.tex && pdflatex informe_desafio.tex
 ```
 
-## Supuestos que hay que revisar antes de entregar
+## Lo que nos falta antes de entregar
 
-* **Semanas del cronograma.** La propuesta habla de S1–S4 sin fechas. Tomamos S1 = 26 oct – 1 nov, S2 = 2–8 nov, S3 = 9–15 nov y S4 = 16–22 nov. Si el profesor contaba otras semanas, se cambian en `figuras/fig_cronograma.tex` y en la Tabla II del informe de avance.
-* **Porcentajes de avance.** Son nuestra estimación por actividad (Tabla II del avance). El promedio da 88 %.
-* **Uso de IA.** La sección 5 del informe del Desafío dice que en F0–F7 usamos IA para depuración y revisión, y que con Claude organizamos el repositorio, las figuras y los borradores de estos informes. Si alguien usó IA en otra parte, hay que agregarlo.
-* **Fotos y video.** El informe del Desafío solo tiene la foto de F4. Conviene agregar una foto del montaje completo con el marcador y el enlace a un video de una partida.
+* **Semanas del cronograma.** En la propuesta pusimos S1–S4 sin fechas. Para comparar tomamos S1 = 26 oct – 1 nov, S2 = 2–8 nov, S3 = 9–15 nov y S4 = 16–22 nov. Si hay que cambiarlas, se cambian en `figuras/fig_cronograma.tex` y en la Tabla II del informe de avance.
+* **Fotos y video.** Por ahora el informe del Desafío solo tiene la foto de F4. Nos falta tomar una foto del montaje completo con el marcador y grabar una partida.
+* **F5.** Subir la memoria y el código de F5 y F6.

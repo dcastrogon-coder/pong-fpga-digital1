@@ -1,8 +1,8 @@
 # F2 · Diseño lógico formal (rev. 1.2)
 
-📄 [`F2_diseno_logico_formal_rev1.2.pdf`](F2_diseno_logico_formal_rev1.2.pdf) · 2 de noviembre de 2026 · **PC1**
+Documento: [`F2_diseno_logico_formal_rev1.2.pdf`](F2_diseno_logico_formal_rev1.2.pdf) · 2 de noviembre de 2026 · **PC1**
 
-Diez bloques diseñados con tablas de verdad, tablas de transición y ecuaciones:
+Diseñamos diez bloques con tablas de verdad, tablas de transición y ecuaciones:
 
 1. Paletas: ecuaciones de inversión T0–T2 y posición efectiva `YPi_EFF`.
 2. Pelota: candidatos `Xc`, `Yc`, reflexión vertical `RY` y fase.
@@ -15,4 +15,4 @@ Diez bloques diseñados con tablas de verdad, tablas de transición y ecuaciones
 9. Buses BCD y tabla de minitérminos de cada segmento.
 10. Botones, reset seguro y supervisión RF (timeout de 500 ms).
 
-Incluye además la política de inicialización global (`INIT_GLOBAL = POR_REQ + RESET_CLEAN + FAULT_RECOVER`) y los detectores de códigos inválidos.
+También dejamos definida la política de inicialización global (`INIT_GLOBAL = POR_REQ + RESET_CLEAN + FAULT_RECOVER`) y los detectores de códigos inválidos.

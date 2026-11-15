@@ -1,8 +1,8 @@
 # F6 · Integración, síntesis y montaje
 
-📄 [`F6_integracion_sintesis_y_montaje.pdf`](F6_integracion_sintesis_y_montaje.pdf) · 14 de noviembre de 2026 · **PC5–PC6**
+Documento: [`F6_integracion_sintesis_y_montaje.pdf`](F6_integracion_sintesis_y_montaje.pdf) · 14 de noviembre de 2026 · **PC5–PC6**
 
-Se agregó el marcador físico: los dos buses BCD salen por el conector LCD (J2) de la tarjeta, pasan por un segundo SN74HCT245N y llegan a dos CD4511BE que manejan dos displays 5161AS de cátodo común. Los dos búferes se habilitan con `HCT_EN` (pin 49) a través de dos 2N3904. Conexiones completas en [`hardware/`](../../hardware/).
+En esta fase agregamos el marcador físico: los dos buses BCD salen por el conector LCD (J2) de la tarjeta, pasan por un segundo SN74HCT245N y llegan a dos CD4511BE que manejan dos displays 5161AS de cátodo común. Los dos búferes los habilitamos con `HCT_EN` (pin 49) a través de dos 2N3904. Las conexiones completas están en [`hardware/`](../../hardware/).
 
 | Compilación completa (Quartus Prime 25.1 Lite) | Resultado |
 |------------------------------------------------|-----------|

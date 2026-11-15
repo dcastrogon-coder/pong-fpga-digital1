@@ -1,6 +1,6 @@
 # F0 · Especificación funcional (rev. 1.2)
 
-📄 [`F0_especificacion_funcional_rev1.2.pdf`](F0_especificacion_funcional_rev1.2.pdf) · 2 de noviembre de 2026 · **PC0**
+Documento: [`F0_especificacion_funcional_rev1.2.pdf`](F0_especificacion_funcional_rev1.2.pdf) · 2 de noviembre de 2026 · **PC0**
 
 Aquí congelamos las reglas del juego antes de diseñar nada:
 
