@@ -1,6 +1,0 @@
-VCD info: dumpfile sim/tb_entradas.vcd opened for output.
-== tb_entradas ==
-------------------------------------------------------------
-RESULTADO tb_entradas: PASA (18 verificaciones)
-------------------------------------------------------------
-tb/tb_entradas.v:144: $finish called at 58700000 (1ps)

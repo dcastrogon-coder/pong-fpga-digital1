@@ -1,5 +1,0 @@
-# Proyecto Quartus II - Pong en FPGA (Electrónica Digital 1, UNAL)
-QUARTUS_VERSION = "13.0"
-DATE = "25 de octubre de 2026"
-
-PROJECT_REVISION = "pong"

@@ -1,0 +1,45 @@
+# OK: Inicializacion
+# OK: GAME_EN desactivado
+# OK: Sin TICK_BALL
+# OK: Primer avance X
+# OK: Congelamiento PHASE
+# OK: Sin avance al habilitar
+# OK: Movimiento X e Y
+# OK: GOAL bloquea registros
+# OK: CENTER y SERVE_DIR
+# OK: Avance izquierdo
+# OK: Vertical cada dos ticks
+# OK: Prioridad INIT_GLOBAL
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Rebote inferior candidato
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Trayectoria con rebotes
+# OK: Rebote superior candidato
+# OK: Trayectoria con rebotes
+# OK: Retencion sin tick
+# ------------------------------
+# PRUEBAS SUPERADAS: 39
+# FIN TESTBENCH PELOTA
+# ------------------------------
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_pelota.v(241)
+#    Time: 751 ns  Iteration: 0  Instance: /tb_pelota

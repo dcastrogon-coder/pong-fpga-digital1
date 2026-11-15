@@ -1,9 +1,0 @@
-== tb_colisiones: barrido exhaustivo, 16 columnas ==
-  casos evaluados : 18432
-  con impacto     : 432
-  con gol         : 720
-  rebote en pared : 2040
-------------------------------------------------------------
-RESULTADO tb_colisiones: PASA (92160 verificaciones)
-------------------------------------------------------------
-tb/tb_colisiones.v:82: $finish called at 18432000 (1ps)

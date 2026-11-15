@@ -1,0 +1,30 @@
+FASE 4 — INTERFAZ VISUAL MAX7219
+
+Hardware:
+- FPGA Cyclone IV E EP4CE10E22C8N.
+- Dos matrices LED 8x8 con MAX7219 en cascada.
+- Adaptador de niveles 74HCT245.
+- Fuente externa de 5 V / 3 A.
+
+Conexiones FPGA:
+- DIN: PIN_28.
+- CLK_LED: PIN_31.
+- LOAD: PIN_33.
+- CLK_SYS: PIN_23 (50 MHz).
+
+Validaciones:
+- Compilación en Quartus: exitosa, sin errores.
+- Programación mediante USB-Blaster/JTAG: exitosa.
+- Alimentación de ambos MAX7219: 5,23 V.
+- Comunicación en cascada: funcional.
+- Corrección horizontal: imagen.v.
+- Corrección vertical: transmisor_max7219.v.
+- Paletas en los extremos: correcto.
+- Pelota cerca del centro: correcto.
+- Imagen estable durante 30 segundos: confirmado.
+
+Evidencia fotográfica: F4_Prueba_Visual_MAX7219.jpg.
+
+Pendiente: implementar un mecanismo de habilitación segura del 74HCT245 durante el encendido y apagado para evitar señales indeterminadas con la FPGA sin alimentación.
+
+Alcance de F4: interfaz visual. Controles RF y demás periféricos corresponden a fases posteriores.

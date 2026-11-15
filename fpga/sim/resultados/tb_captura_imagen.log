@@ -1,0 +1,18 @@
+OK: Inicializacion global | SNAP=0dbb READY=0
+OK: Retencion sin solicitud | SNAP=0dbb READY=0
+OK: Primera captura | SNAP=0a4d READY=1
+OK: FRAME_READY vuelve a cero | SNAP=0a4d READY=0
+OK: Instantanea conservada | SNAP=0a4d READY=0
+OK: Segunda captura | SNAP=0377 READY=1
+OK: Capturas consecutivas | SNAP=1808 READY=1
+OK: Liberacion de CAPTURE_REQ | SNAP=1808 READY=0
+OK: INIT domina captura | SNAP=0dbb READY=0
+OK: Captura y movimiento simultaneo | SNAP=0ec2 READY=1
+OK: Retencion tras movimiento | SNAP=0ec2 READY=0
+OK: Captura despues del movimiento | SNAP=0767 READY=1
+OK: Retencion final | SNAP=0767 READY=0
+------------------------------
+PRUEBAS SUPERADAS: 13
+FIN TESTBENCH CAPTURA_IMAGEN
+------------------------------
+tb/tb_captura_imagen.v:263: $finish called at 271000 (1ps)

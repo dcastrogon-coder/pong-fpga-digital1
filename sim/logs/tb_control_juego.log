@@ -1,6 +1,0 @@
-VCD info: dumpfile sim/tb_control_juego.vcd opened for output.
-== tb_control_juego ==
-------------------------------------------------------------
-RESULTADO tb_control_juego: PASA (22 verificaciones)
-------------------------------------------------------------
-tb/tb_control_juego.v:171: $finish called at 20820000 (1ps)

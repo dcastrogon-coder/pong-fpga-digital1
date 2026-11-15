@@ -1,0 +1,19 @@
+------------------------------
+TESTBENCH BOTON_EVENTO
+------------------------------
+OK: Inicializacion
+OK: Rebotes rechazados
+OK: Primera pulsacion, 1 evento
+OK: Sin repeticion por pulsacion mantenida
+OK: Rebote sin falsa liberacion
+OK: Liberacion sin evento
+OK: Segunda pulsacion, 2 eventos acumulados
+OK: Prioridad de INIT_GLOBAL
+OK: INIT cancela pulsacion pendiente
+------------------------------
+CICLOS VERIFICADOS: 117
+EVENTOS VALIDOS DETECTADOS: 2
+LIBERACIONES CONFIRMADAS: 1
+FIN TESTBENCH BOTON_EVENTO
+------------------------------
+tb/tb_boton_evento.v:394: $finish called at 2351000 (1ps)

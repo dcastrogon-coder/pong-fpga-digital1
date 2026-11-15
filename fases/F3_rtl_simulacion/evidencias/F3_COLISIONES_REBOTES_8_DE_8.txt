@@ -1,0 +1,21 @@
+# ================================================
+# TB PONG: COLISIONES, IMPACTOS Y REBOTES
+# ================================================
+# OK 1: reset, dos enlaces RF y START -> JUEGO
+# OK 2: tick natural horizontal (7,3) -> (8,3)
+# OK 3: tick natural vertical (8,3) -> (9,4)
+# OK 4: paleta J1 devuelve pelota sin anotar
+# OK 5: paleta J2 devuelve pelota sin anotar
+# OK 6: rebote superior Y=0 -> 1, DY=abajo
+# OK 7: rebote inferior Y=7 -> 6, DY=arriba
+# OK 8: 2 impactos, 0 goles, 0 puntos, marcador 0:0
+# ================================================
+# COMPROBACIONES: 8 / 8
+# HIT_J1 OBSERVADOS: 1
+# HIT_J2 OBSERVADOS: 1
+# CAPTURE_GOAL OBSERVADOS: 0
+# POINT_EN OBSERVADOS: 0
+# FIN TB_PONG_COLISIONES_REBOTES
+# ================================================
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_pong_colisiones_rebotes.v(316)
+#    Time: 6280 ns  Iteration: 1  Instance: /tb_pong_colisiones_rebotes

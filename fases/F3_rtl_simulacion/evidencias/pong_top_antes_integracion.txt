@@ -1,0 +1,30 @@
+module pong_top (
+    // Reloj principal
+    input wire CLK_SYS,
+
+    // Pulsadores físicos
+    input wire START_RAW,
+    input wire RESET_RAW,
+    input wire PAUSE_RAW,
+
+    // Receptor inalámbrico del jugador 1
+    input wire [1:0] CMD_RX_J1,
+    input wire FRAME_J1_VALID,
+
+    // Receptor inalámbrico del jugador 2
+    input wire [1:0] CMD_RX_J2,
+    input wire FRAME_J2_VALID,
+
+    // Interfaz serial MAX7219
+    output wire DIN,
+    output wire CLK_LED,
+    output wire LOAD,
+
+    // Marcadores BCD externos
+    output wire [3:0] SCORE_J1_BCD,
+    output wire [3:0] SCORE_J2_BCD
+);
+
+    // Aquí se conectarán los módulos del sistema.
+
+endmodule

@@ -1,0 +1,52 @@
+# OK: Inicializacion
+# OK: Juego deshabilitado | CB=0 CP=0
+# OK: Movimiento continuo | CB=1 CP=1
+# OK: Movimiento continuo | CB=2 CP=2
+# OK: Movimiento continuo | CB=3 CP=3
+# OK: Movimiento continuo | CB=0 CP=4
+# OK: Movimiento continuo | CB=1 CP=0
+# OK: Movimiento continuo | CB=2 CP=1
+# OK: Movimiento continuo | CB=3 CP=2
+# OK: Movimiento continuo | CB=0 CP=3
+# OK: Movimiento continuo | CB=1 CP=4
+# OK: Movimiento continuo | CB=2 CP=0
+# OK: Movimiento continuo | CB=3 CP=1
+# OK: Movimiento continuo | CB=0 CP=2
+# OK: Movimiento continuo | CB=1 CP=3
+# OK: Movimiento continuo | CB=2 CP=4
+# OK: Movimiento continuo | CB=3 CP=0
+# OK: Movimiento continuo | CB=0 CP=1
+# OK: Movimiento continuo | CB=1 CP=2
+# OK: Movimiento continuo | CB=2 CP=3
+# OK: Movimiento continuo | CB=3 CP=4
+# OK: Movimiento continuo | CB=0 CP=0
+# OK: Periodicidad 4/5
+# OK: Ticks coincidentes
+# OK: Avance parcial | CB=1 CP=1
+# OK: Avance parcial | CB=2 CP=2
+# OK: Avance parcial | CB=3 CP=3
+# OK: Pausa en terminal BALL | CB=3 CP=3
+# OK: Pausa sostenida | CB=3 CP=3
+# OK: Rearme de contadores | CB=0 CP=0
+# OK: Periodo tras rearme | CB=1 CP=1
+# OK: Periodo tras rearme | CB=2 CP=2
+# OK: Periodo tras rearme | CB=3 CP=3
+# OK: Primer tick BALL | CB=0 CP=4
+# OK: Primer tick PADDLE | CB=1 CP=0
+# OK: Rearme prioritario | CB=0 CP=0
+# OK: Preparar terminal CP | CB=1 CP=1
+# OK: Preparar terminal CP | CB=2 CP=2
+# OK: Preparar terminal CP | CB=3 CP=3
+# OK: Preparar terminal CP | CB=0 CP=4
+# OK: INIT domina terminal | CB=0 CP=0
+# OK: Retencion final | CB=0 CP=0
+# ------------------------------
+# CICLOS VERIFICADOS: 40
+# TICKS BALL: 7
+# TICKS PADDLE: 5
+# COINCIDENCIAS: 1
+# FIN TESTBENCH TEMPORIZADORES
+# ------------------------------
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_temporizadores.v(280)
+#    Time: 791 ns  Iteration: 0  Instance: /tb_temporizadores
+# 1

@@ -1,0 +1,20 @@
+===================================================
+TB PONG: PROTOCOLO INTEGRADO DOBLE MAX7219
+===================================================
+OK 1: 14 instrucciones de inicializacion identicas en ambos MAX7219
+OK 2: 32 bits exactos por LOAD; 960 flancos CLK_LED en 30 transferencias
+OK 3: 8 filas del primer cuadro, direcciones 8..1 y datos correctos
+OK 4: 8 filas del segundo cuadro, refresco continuo
+OK 5: B lejano/A cercano en cada palabra de 32 bits
+OK 6: CAPTURE_REQ/FRAME_READY una vez por cuadro (2/2)
+OK 7: SNAPSHOT estable durante todas las filas de cada cuadro
+OK 8: Filas de referencia Y=3,Y=4 y ESPERA/BCD sin cambios
+===================================================
+COMPROBACIONES: 8 / 8
+TRANSFERENCIAS: 30 (14 init + 16 filas)
+FLANCOS CLK_LED: 960
+SOLICITUDES CAPTURE_REQ: 2
+FRAME_READY: 2
+FIN TB_PONG_MAX7219_INTEGRADO
+===================================================
+tb/tb_pong_max7219_integrado.v:245: $finish called at 101691000 (1ps)

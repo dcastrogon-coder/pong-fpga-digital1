@@ -1,0 +1,25 @@
+====================================================
+TB PONG INTEGRACION: GOLES, PUNTUACION Y VICTORIA
+====================================================
+OK 1: reset, RF, marcador 0:0 y saque inicial
+OK gol 1: anota J2 | marcador 0:1 | estado 0
+OK gol 2: anota J1 | marcador 1:1 | estado 0
+OK gol 3: anota J1 | marcador 2:1 | estado 0
+OK gol 4: anota J1 | marcador 3:1 | estado 0
+OK gol 5: anota J1 | marcador 4:1 | estado 0
+OK gol 6: anota J1 | marcador 5:1 | estado 0
+OK gol 7: anota J1 | marcador 6:1 | estado 0
+OK gol 8: anota J1 | marcador 7:1 | estado 0
+OK gol 9: anota J1 | marcador 8:1 | estado 0
+OK gol 10: anota J1 | marcador 9:1 | estado 4
+OK: FIN retiene resultado 9:1 pese a START
+OK: RESET sale de FIN y restablece 0:0
+OK: 10 CAPTURE_GOAL y 10 POINT_EN, uno por gol
+====================================================
+COMPROBACIONES: 13 / 13
+GOLES PROBADOS: 10
+CAPTURE_GOAL OBSERVADOS: 10
+POINT_EN OBSERVADOS: 10
+FIN TB_PONG_GOLES_VICTORIA
+====================================================
+tb/tb_pong_goles_victoria.v:326: $finish called at 24880000 (1ps)

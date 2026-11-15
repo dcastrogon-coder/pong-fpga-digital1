@@ -1,0 +1,21 @@
+===============================================
+TB INTEGRACION PONG: ARRANQUE, RF, START, PAUSE
+===============================================
+OK 1: Arranque, reset y posiciones iniciales
+OK 2: Dos enlaces RF vigentes
+OK 3: START conduce a JUEGO
+OK 4: PAUSA_MANUAL congela movimiento y puntajes
+OK 5: MAX7219 transmite durante PAUSA (18 LOAD)
+OK 6: Segunda PAUSE reanuda JUEGO
+OK 7: Timeout RF conduce a PAUSA_RF
+OK 8: RF restaurado y nuevo START reanudan juego
+OK 9: Eventos y REARM_TIMERS observados
+===============================================
+COMPROBACIONES DE INTEGRACION: 9 / 9
+PULSOS LOAD OBSERVADOS: 19
+START_PULSE OBSERVADOS: 2
+PAUSE_PULSE OBSERVADOS: 2
+REARM_TIMERS OBSERVADOS: 3
+FIN TB_PONG_INTEGRACION
+===============================================
+tb/tb_pong_integracion.v:273: $finish called at 66060000 (1ps)

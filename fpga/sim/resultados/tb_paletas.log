@@ -1,0 +1,19 @@
+OK: Inicializacion
+OK: Posicion efectiva
+OK: Movimiento independiente
+OK: Sin tick
+OK: Pulsacion sostenida 1
+OK: Pulsacion sostenida 2
+OK: Limites 0 y 6
+OK: Conflicto de botones
+OK: Juego deshabilitado
+OK: Centrado
+OK: EFF durante gol
+OK: Gol bloquea escritura
+OK: Movimiento posterior
+OK: Prioridad INIT
+--------------------------
+PRUEBAS SUPERADAS: 14
+FIN TESTBENCH PALETAS
+--------------------------
+tb/tb_paletas.v:185: $finish called at 231000 (1ps)

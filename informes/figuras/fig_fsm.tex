@@ -1,0 +1,50 @@
+% ============================================================================
+%  fig_fsm.tex - FSM de control del juego (control_juego.v)
+%  Pong en FPGA - Electrónica Digital 1 - UNAL
+%  Juan David Ortiz Muñoz, David Eduardo Chivata Arias, Daniel Felipe Castro González
+%  Compilar con: pdflatex fig_fsm.tex
+% ============================================================================
+\documentclass[border=6pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{newunicodechar}
+\newunicodechar{¬}{\ensuremath{\neg}}
+\newunicodechar{∧}{\ensuremath{\wedge}}
+\usepackage{tikz}
+\usetikzlibrary{automata,positioning,arrows.meta,calc}
+\begin{document}
+\begin{tikzpicture}[
+    font=\sffamily\footnotesize,
+    >={Stealth[length=2.3mm]},
+    every state/.style={draw, line width=0.7pt, minimum size=2.1cm, align=center, fill=violet!10},
+    tr/.style={->, line width=0.6pt},
+    lbl/.style={font=\sffamily\scriptsize, align=center, fill=white, inner sep=1.5pt},
+]
+\node[state, initial, initial text={INIT\_GLOBAL}] (esp) at (0, 0)  {ESPERA\\\texttt{000}};
+\node[state]                (jue) at (6, 0)  {JUEGO\\\texttt{001}};
+\node[state]                (pun) at (6, -5) {PUNTO\\\texttt{010}};
+\node[state, fill=red!8]    (fin) at (0, -5) {FIN\\\texttt{100}};
+\node[state, fill=orange!12] (prf) at (12.5, 3.6) {PAUSA\_RF\\\texttt{011}};
+\node[state, fill=orange!12] (pma) at (12.5, -3.6) {PAUSA\_\\MANUAL\\\texttt{101}};
+
+\draw[tr] (esp) -- node[lbl, above=1pt] {RF\_OK\_EFF ∧ START\_PULSE} (jue);
+\draw[tr] (jue) to[bend left=18] node[lbl, sloped, above] {¬RF\_OK\_EFF \quad (prioridad 1)} (prf);
+\draw[tr] (prf) to[bend left=18] node[lbl, sloped, below] {RF\_OK\_EFF ∧ START\_PULSE} (jue);
+\draw[tr] (jue) to[bend left=18] node[lbl, sloped, above] {PAUSE\_PULSE \quad (2)} (pma);
+\draw[tr] (pma) to[bend left=18] node[lbl, sloped, below, pos=0.35] {RF\_OK\_EFF ∧ PAUSE\_PULSE} (jue);
+\draw[tr] (jue) -- node[lbl, left, pos=0.4] {GOAL\_J1 $\oplus$ GOAL\_J2\\(prioridad 3)} (pun);
+\draw[tr] (pun) -- node[lbl, above] {WIN\_NEXT} (fin);
+\draw[tr] (pun) to[bend left=10] node[lbl, sloped, above, pos=0.45] {¬WIN\_NEXT (saque)} (esp);
+
+\draw[tr] (jue) edge[loop above] node[lbl, above] {sin eventos} (jue);
+\draw[tr] (prf) edge[loop above] node[lbl, above] {en otro caso} (prf);
+\draw[tr] (pma) edge[loop below] node[lbl, below] {en otro caso} (pma);
+\draw[tr] (fin) edge[loop below] node[lbl, below] {solo sale con RESET (INIT\_GLOBAL)} (fin);
+\draw[tr] (esp) edge[loop above] node[lbl, above] {en otro caso} (esp);
+
+\node[draw, dashed, rounded corners, align=left, font=\sffamily\scriptsize, anchor=north west, text width=6.6cm, execute at begin node=\raggedright]
+  at (5.6, -7.0) {Códigos \texttt{110} y \texttt{111} no usados: la lógica de siguiente estado los manda a ESPERA y \texttt{supervisor\_fallos} activa FAULT\_RECOVER.\\[2pt]
+  En F5/F6 RF\_OK\_EFF pasa a ser la señal DETECT de los dos mandos cableados (PAUSA\_RF = mando desconectado).};
+\end{tikzpicture}
+\end{document}

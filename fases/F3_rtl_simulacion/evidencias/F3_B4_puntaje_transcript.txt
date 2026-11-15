@@ -1,0 +1,43 @@
+# OK: Inicializacion global | J1=0 J2=0 SC=0
+# OK: Captura J1 | J1=0 J2=0 SC=0
+# OK: Primer punto J1 | J1=1 J2=0 SC=0
+# OK: Sin duplicacion | J1=1 J2=0 SC=0
+# OK: Gol sin CAPTURE_GOAL | J1=1 J2=0 SC=0
+# OK: Captura J2 | J1=1 J2=0 SC=1
+# OK: Primer punto J2 | J1=1 J2=1 SC=1
+# OK: Doble gol invalido | J1=1 J2=1 SC=1
+# OK: Prioridad INIT | J1=0 J2=0 SC=0
+# OK: Retencion tras INIT | J1=0 J2=0 SC=0
+# OK: Seleccionar J1 | J1=0 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=1 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=2 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=3 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=4 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=5 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=6 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=7 J2=0 SC=0
+# OK: Acumular puntos J1 | J1=8 J2=0 SC=0
+# OK: J1 en 8 sin victoria | J1=8 J2=0 SC=0
+# OK: Victoria J1 | J1=9 J2=0 SC=0
+# OK: Saturacion J1 | J1=9 J2=0 SC=0
+# OK: Seleccionar J2 | J1=9 J2=0 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=1 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=2 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=3 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=4 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=5 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=6 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=7 SC=1
+# OK: Acumular puntos J2 | J1=9 J2=8 SC=1
+# OK: Victoria J2 | J1=9 J2=9 SC=1
+# OK: Saturacion J2 | J1=9 J2=9 SC=1
+# OK: Captura sin incremento | J1=9 J2=9 SC=0
+# OK: Retencion de marcadores | J1=9 J2=9 SC=0
+# OK: RESET final | J1=0 J2=0 SC=0
+# OK: Retencion en cero | J1=0 J2=0 SC=0
+# ------------------------------
+# PRUEBAS SUPERADAS: 37
+# FIN TESTBENCH PUNTAJE
+# ------------------------------
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_puntaje.v(243)
+#    Time: 751 ns  Iteration: 0  Instance: /tb_puntaje

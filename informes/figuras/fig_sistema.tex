@@ -1,0 +1,110 @@
+% ============================================================================
+%  fig_sistema.tex - Arquitectura del sistema implementado (montaje F6)
+%  Pong en FPGA - Electrónica Digital 1 - UNAL
+%  Juan David Ortiz Muñoz, David Eduardo Chivata Arias, Daniel Felipe Castro González
+%  Compilar con: pdflatex fig_sistema.tex
+% ============================================================================
+\documentclass[border=6pt]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{newunicodechar}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds}
+\begin{document}
+\begin{tikzpicture}[
+    font=\sffamily\footnotesize,
+    >={Stealth[length=2.2mm]},
+    ext/.style={draw, fill=gray!10, align=center, minimum width=2.7cm, minimum height=0.95cm, inner sep=3pt, line width=0.5pt},
+    chip/.style={draw, fill=yellow!14, align=center, minimum width=2.7cm, minimum height=1.0cm, inner sep=3pt, line width=0.6pt},
+    salida/.style={draw, fill=red!10, align=center, minimum width=2.7cm, minimum height=1.0cm, inner sep=3pt, line width=0.6pt},
+    blk/.style={draw, rounded corners=2pt, align=center, minimum width=3.0cm, minimum height=0.95cm, inner sep=3pt, line width=0.6pt},
+    ent/.style={blk, fill=green!13},
+    ctl/.style={blk, fill=violet!12},
+    mot/.style={blk, fill=orange!17},
+    vid/.style={blk, fill=blue!11},
+    seg/.style={blk, fill=gray!14},
+    sig/.style={->, line width=0.6pt},
+    bus/.style={->, line width=1.3pt},
+    pwr/.style={line width=0.9pt, red!70!black},
+    lbl/.style={font=\sffamily\scriptsize, align=center, inner sep=1.5pt},
+]
+
+% --------------------------------------------------------------- Entradas
+\node[ext] (j1)  at (-1.4, 6.4) {Mando J1\\UP · DOWN · DETECT};
+\node[ext] (j2)  at (-1.4, 4.7) {Mando J2\\UP · DOWN · DETECT};
+\node[ext] (btn) at (-1.4, 3.2) {Pulsadores\\START · PAUSE · RESET};
+\node[ext] (osc) at (-1.4, 1.0) {Oscilador\\50 MHz};
+
+% --------------------------------------------------------------- FPGA
+\node[ent] (fin) at (3.9, 5.4) {Entradas\\sincronización y\\antirrebote 20 ms};
+\node[ctl] (fsm) at (3.9, 3.2) {Control del juego\\FSM de 6 estados\\+ temporizadores};
+\node[seg] (sup) at (3.9, 1.0) {Reset seguro y\\supervisor de fallos};
+\node[mot] (mot) at (8.4, 5.4) {Motor\\paletas · pelota\\colisiones};
+\node[ctl] (pun) at (8.4, 3.2) {Puntaje\\2 contadores\\BCD 0–9};
+\node[vid] (vid) at (12.8, 5.4) {Imagen\\instantánea · filas\\transmisor serial};
+
+\begin{scope}[on background layer]
+  \node[draw, dashed, rounded corners=5pt, line width=0.8pt, inner sep=9pt, fill=white,
+        fit=(fin)(sup)(mot)(vid)(pun),
+        label={[font=\sffamily\small\bfseries, anchor=south west]north west:FPGA Cyclone IV E EP4CE10E22C8N · tarjeta A-C4E6E10}] (fpga) {};
+\end{scope}
+
+\draw[sig] (j1.east) -- ++(1.3,0) |- ([yshift=3mm]fin.west);
+\node[lbl, anchor=south west] at (j1.east) {P30, P32, P34};
+\draw[sig] (j2.east) -- ++(1.3,0) |- ([yshift=-3mm]fin.west);
+\node[lbl, anchor=south west] at (j2.east) {P39, P38, P42};
+\draw[sig] (btn.east) -- (btn.east -| fsm.west);
+\node[lbl, anchor=south west] at (btn.east) {P43, P46, P44};
+\draw[sig] (osc.east) -- node[lbl, above] {P23} (osc.east -| sup.west);
+
+\draw[sig] (fin) -- node[lbl, right] {start, pause,\\conexión} (fsm);
+\draw[sig] (sup) -- node[lbl, right] {INIT} (fsm);
+\draw[sig] (fin) -- node[lbl, above] {comandos} (mot);
+\draw[sig] (fsm) -- node[lbl, above] {POINT\_EN} (pun);
+\draw[sig] (fsm.north east) -- node[lbl, above, sloped] {GAME\_EN} (mot.south west);
+\draw[sig] (mot) -- node[lbl, right] {gol} (pun);
+\draw[sig] (mot) -- node[lbl, above] {posiciones} (vid);
+
+% --------------------------------------------------------------- Salidas
+\node[chip]   (b1)   at (17.6, 5.4) {SN74HCT245N \#1\\3,3 V → 5 V};
+\node[salida] (fc)   at (21.4, 5.4) {2 × FC-16 en cascada\\GC7219C (MAX7219)\\matriz 8 × 16};
+\node[chip]   (b2)   at (17.6, 3.2) {SN74HCT245N \#2\\3,3 V → 5 V};
+\node[chip]   (dec)  at (21.4, 3.2) {2 × CD4511BE\\BCD → 7 segmentos};
+\node[salida] (dsp)  at (25.2, 3.2) {2 × 5161AS\\cátodo común\\(7 × 470 Ω c/u)};
+\node[chip]   (q)    at (17.6, 1.0) {2 × 2N3904\\habilitación /OE};
+
+\draw[bus] (vid) -- node[lbl, above, pos=0.62] {DIN, CLK\_LED,\\LOAD} node[lbl, below, pos=0.62] {P28, P31, P33} (b1);
+\draw[bus] (b1) -- node[lbl, above] {5 V} (fc);
+\draw[bus] (pun) -- node[lbl, above, pos=0.7] {8 bits BCD} node[lbl, below, pos=0.7] {conector J2: P101–P112} (b2);
+\draw[bus] (b2) -- node[lbl, above] {BCD} (dec);
+\draw[bus] (dec) -- node[lbl, above] {a–g} (dsp);
+\draw[sig] (sup) -- node[lbl, above, pos=0.84] {HCT\_EN · P49} node[lbl, below, pos=0.84] {(50 ms tras arrancar)} (q);
+\draw[sig] (q) -- node[lbl, right] {/OE \#2} (b2);
+\draw[sig] (q.east) -- (19.55, 1.0) -- (19.55, 4.55) -- (18.5, 4.55) -- node[lbl, right, pos=0.5] {/OE \#1} (18.5, 4.9);
+
+% --------------------------------------------------------------- Alimentación
+\node[ext, fill=red!6] (f5)  at (23.3, 1.0) {Fuente externa\\5 V / 3 A};
+\draw[pwr, ->] (f5.north) -- ++(0,0.6) -| (dec.south);
+\draw[pwr, ->] (f5.north) ++(0,0.6) -| (dsp.south);
+\node[lbl, text=red!70!black, anchor=north] at ($(f5.south)+(0,-0.1)$) {+5 V a matrices, búferes, decodificadores\\y displays · GND común con la FPGA};
+\node[ext, fill=red!6] (usb) at (3.9, -1.3) {Mini-USB\\(alimenta la tarjeta)};
+\node[ext, fill=gray!4] (jtag) at (8.4, -1.3) {USB-Blaster\\JTAG (.sof)};
+\draw[pwr, ->] (usb.north) -- (usb.north |- fpga.south);
+\draw[->, line width=0.6pt] (jtag.north) -- (jtag.north |- fpga.south);
+
+% --------------------------------------------------------------- Leyenda
+\newcommand{\cuadrito}[1]{\tikz[baseline=-0.6ex]\draw[#1, rounded corners=1pt] (0,-0.12) rectangle (0.45,0.14);}
+\node[anchor=west, font=\sffamily\scriptsize] at (-2.8, -2.5) {%
+  \cuadrito{fill=green!13} entradas \quad
+  \cuadrito{fill=violet!12} control y puntaje \quad
+  \cuadrito{fill=orange!17} motor \quad
+  \cuadrito{fill=blue!11} imagen \quad
+  \cuadrito{fill=gray!14} seguridad \quad
+  \cuadrito{fill=yellow!14} circuitos de interfaz \quad
+  \cuadrito{fill=red!10} actuadores (lo que ve el jugador) \quad
+  \cuadrito{fill=gray!10} entradas físicas};
+\end{tikzpicture}
+\end{document}

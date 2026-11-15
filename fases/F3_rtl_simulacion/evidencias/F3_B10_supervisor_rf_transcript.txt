@@ -1,0 +1,26 @@
+# ------------------------------
+# TESTBENCH SUPERVISOR RF
+# ------------------------------
+# OK: Inicializacion RF
+# OK: Alta independiente de J1 y J2
+# OK: Comandos y retencion
+# OK: Timeout anticipado
+# OK: Trama domina timeout terminal
+# OK: Recuperacion de J2
+# OK: Expiracion simultanea
+# OK: Contadores saturados
+# OK: Recuperacion independiente
+# OK: Prioridad INIT_GLOBAL
+# OK: Expiracion independiente J1
+# ------------------------------
+# CICLOS VERIFICADOS: 39
+# TRAMAS J1: 10
+# TRAMAS J2: 10
+# VENCIMIENTOS J1: 2
+# VENCIMIENTOS J2: 2
+# RESCATES EN TERMINAL: 1
+# RF_OK_EFF FINAL: 1
+# FIN TESTBENCH SUPERVISOR RF
+# ------------------------------
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_supervisor_rf.v(770)
+#    Time: 791 ns  Iteration: 0  Instance: /tb_supervisor_rf

@@ -1,0 +1,22 @@
+# ===================================================
+# TB PONG: SUPERVISION Y RECUPERACION DE FALLOS
+# ===================================================
+# OK 1: POR/RESET, RF, START y JUEGO sin fallos falsos
+# OK 2: FSM ilegal 110 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 3: FSM ilegal 111 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 4: BCD J1 = 10 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 5: BCD J2 = 15 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 6: YP1 = 7 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 7: YP2 = 7 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 8: XB = 0 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 9: XB = 15 -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 10: alarma externa FAULT_TX -> FAULT_RECOVER, INIT_GLOBAL, ESPERA y reset
+# OK 11: RESET_RAW durante JUEGO restituye ESPERA
+# ===================================================
+# COMPROBACIONES: 11 / 11
+# FALLOS INYECTADOS: 9
+# RECUPERACIONES VERIFICADAS: 9
+# FIN TB_PONG_RECUPERACION_FALLOS
+# ===================================================
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_pong_recuperacion_fallos.v(269)
+#    Time: 5520 ns  Iteration: 1  Instance: /tb_pong_recuperacion_fallos

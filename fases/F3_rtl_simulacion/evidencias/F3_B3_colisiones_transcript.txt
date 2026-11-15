@@ -1,0 +1,22 @@
+# OK: Impacto J1
+# OK: Gol J2
+# OK: Impacto J2
+# OK: Gol J1
+# OK: Sin colision interior
+# OK: GAME_EN desactivado
+# OK: Sin TICK_BALL
+# OK: Paleta efectiva J1
+# OK: Paleta efectiva J2
+# OK: Impacto en Y=0
+# OK: Impacto en Y=7
+# OK: Direccion no valida
+# OK: Sin cruce izquierdo
+# OK: Sin cruce derecho
+# OK: Ambos permisos en cero
+# Pruebas dirigidas: 15 OK
+# ------------------------------
+# PRUEBAS SUPERADAS: 87823
+# FIN TESTBENCH COLISIONES
+# ------------------------------
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_colisiones.v(236)
+#    Time: 87823 ns  Iteration: 0  Instance: /tb_colisiones

@@ -1,0 +1,21 @@
+------------------------------
+TESTBENCH IMAGEN 8x16
+------------------------------
+OK: Inicio: fila 3 | FILA=3 A=81 B=80
+OK: Inicio: fila 4 | FILA=4 A=01 B=80
+OK: Inicio: fila vacia superior | FILA=0 A=00 B=00
+OK: Inicio: fila vacia inferior | FILA=7 A=00 B=00
+OK: Pelota en columna 8 | FILA=3 A=01 B=81
+OK: Superposicion con paleta J1 | FILA=0 A=01 B=00
+OK: Superposicion con paleta J2 | FILA=7 A=00 B=80
+OK: Pelota en columna 14 | FILA=4 A=00 B=40
+OK: Pelota en columna 7 | FILA=3 A=81 B=00
+OK: Objetos en extremos | FILA=0 A=01 B=80
+PRUEBAS DIRIGIDAS: 10
+------------------------------
+PRUEBAS DIRIGIDAS: 10
+PRUEBAS EXHAUSTIVAS: 65536
+TOTAL VERIFICADO: 65546
+FIN TESTBENCH IMAGEN
+------------------------------
+tb/tb_imagen.v:336: $finish called at 65546000 (1ps)

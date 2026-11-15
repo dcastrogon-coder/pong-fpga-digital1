@@ -1,0 +1,13 @@
+------------------------------
+TESTBENCH MARCADOR BCD
+------------------------------
+OK: 100 pares BCD validos
+OK: 256 combinaciones exhaustivas
+------------------------------
+PARES VALIDOS VERIFICADOS: 100
+COMBINACIONES EXHAUSTIVAS: 256
+PARES CON BCD INVALIDO: 156
+TOTAL DE COMPROBACIONES: 356
+FIN TESTBENCH MARCADOR BCD
+------------------------------
+tb/tb_marcador_bcd.v:237: $finish called at 356000 (1ps)

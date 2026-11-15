@@ -1,0 +1,22 @@
+------------------------------
+TESTBENCH SUPERVISOR FALLOS
+------------------------------
+OK: 17 pruebas dirigidas
+OK: 8 estados FSM verificados
+OK: 256 pares BCD verificados
+OK: 64 pares de paletas verificados
+OK: 16 posiciones XB verificadas
+OK: Ambos valores de FAULT_TX
+------------------------------
+PRUEBAS DIRIGIDAS: 17
+BARRIDO FSM: 8
+BARRIDO BCD: 256
+BARRIDO PALETAS: 64
+BARRIDO XB: 16
+BARRIDO FAULT_TX: 2
+CASOS CON FALLO: 187
+CASOS SIN FALLO: 176
+TOTAL VERIFICADO: 363
+FIN TESTBENCH SUPERVISOR FALLOS
+------------------------------
+tb/tb_supervisor_fallos.v:479: $finish called at 363000 (1ps)

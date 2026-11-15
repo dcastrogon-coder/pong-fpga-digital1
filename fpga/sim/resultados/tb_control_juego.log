@@ -1,0 +1,26 @@
+OK: Inicializacion
+OK: START sin RF | STATE=000 SERVE=1
+OK: Inicio de partida | STATE=001 SERVE=1
+OK: Juego activo | STATE=001 SERVE=1
+OK: PAUSE domina gol | STATE=101 SERVE=1
+OK: START ignorado en pausa manual | STATE=101 SERVE=1
+OK: PAUSE con RF invalido | STATE=101 SERVE=1
+OK: RF recuperado sin reanudar | STATE=101 SERVE=1
+OK: PAUSE reanuda partida | STATE=001 SERVE=1
+OK: Doble gol invalido | STATE=001 SERVE=1
+OK: Captura gol J1 | STATE=010 SERVE=0
+OK: PUNTO no ganador | STATE=000 SERVE=0
+OK: Nuevo inicio | STATE=001 SERVE=0
+OK: RF domina PAUSE y gol | STATE=011 SERVE=0
+OK: PAUSE ignorado en PAUSA_RF | STATE=011 SERVE=0
+OK: START recupera PAUSA_RF | STATE=001 SERVE=0
+OK: Captura gol J2 | STATE=010 SERVE=1
+OK: PUNTO ganador entra FIN | STATE=100 SERVE=1
+OK: FIN conserva resultado | STATE=100 SERVE=1
+OK: INIT_GLOBAL desde FIN | STATE=000 SERVE=1
+------------------------------
+DIRIGIDAS OK: 20
+COMBINACIONES FSM OK: 512
+FIN TESTBENCH CONTROL_JUEGO
+------------------------------
+tb/tb_control_juego.v:409: $finish called at 10631000 (1ps)

@@ -1,0 +1,23 @@
+# ------------------------------
+# TESTBENCH RESET_SEGURO
+# ------------------------------
+# OK: Arranque inicial seguro
+# OK: POR_REQ activo durante arranque
+# OK: BOOT completo y estable
+# OK: Liberacion sincronizada y filtrada
+# OK: RESET permanece liberado
+# OK: Afirmacion asincrona
+# OK: Rebote reinicia contador y sincronizadores
+# OK: Nueva liberacion completa tras rebote
+# OK: RESET fisico no reinicia BOOT
+# OK: Pulsacion breve detectada
+# OK: Liberacion segura tras pulso breve
+# ------------------------------
+# COMPROBACIONES SUPERADAS: 47
+# BOOT FINAL: 1111
+# POR_REQ FINAL: 0
+# RESET_CLEAN FINAL: 0
+# FIN TESTBENCH RESET_SEGURO
+# ------------------------------
+# ** Note: $finish    : C:/FPGA/PONG_F3/tb/tb_reset_seguro.v(512)
+#    Time: 791 ns  Iteration: 0  Instance: /tb_reset_seguro

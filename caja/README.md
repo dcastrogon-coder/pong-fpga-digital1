@@ -11,8 +11,8 @@ Al final el montaje queda en protoboard (nos dijeron que se vale), así que dise
 * **La protoboard de los botones y el marcador va encajada en la tapa, a ras.** Queda dentro de la caja, pero con la cara de arriba al nivel de la tapa, así que se pueden presionar los pulsadores y ver los displays. Por debajo la sostiene una lámina de MDF colgada de cuatro tornillos.
 * **Detrás de esa protoboard hay una ranura de 150 × 9 mm** por donde bajan los cables hacia la tarjeta.
 * **Las dos matrices 8×8 se asoman por su ventana** (64,8 × 32,8 mm) y las aprietan por detrás dos barras atornilladas.
-* **Adentro, sobre la base:** la A-C4E6E10 atrás a la izquierda, en separadores, y una protoboard completa adelante (la de las matrices y, más adelante, los receptores RF). Su sitio queda marcado en la base.
-* **Atrás:** una salida para el USB y el USB-Blaster justo detrás de la tarjeta, dos huecos para las antenas y los nombres grabados.
+* **Adentro, sobre la base:** la A-C4E6E10 atrás a la izquierda, en separadores, y una protoboard completa adelante (la de los búferes SN74HCT245N y las matrices). Su sitio queda marcado en la base.
+* **Atrás:** una salida para el USB y el USB-Blaster justo detrás de la tarjeta, dos huecos que usamos para sacar los cables de los mandos J1 y J2 (en la propuesta eran para antenas RF) y los nombres grabados.
 
 Si más adelante pasamos todo a baquela con pulsadores de panel, está la versión anterior (ventanas para los displays y botones de 12 mm) en `variantes/parametros_tapa_con_pulsadores.json`.
 
@@ -21,7 +21,7 @@ Si más adelante pasamos todo a baquela con pulsadores de panel, está la versi�
 | Archivo | Para qué |
 |---|---|
 | `dxf/hojas_para_laser/hoja_1_caja_600x400mm.dxf` | **Lo que se manda a cortar ya.** Las 9 láminas de la caja en una hoja de 600 × 400 mm. |
-| `dxf/hojas_para_laser/hoja_2_controles_600x400mm.dxf` | Las cajitas de los controles J1 y J2. Se cortan **cuando el circuito inalámbrico esté listo** y sepamos su tamaño. |
+| `dxf/hojas_para_laser/hoja_2_controles_600x400mm.dxf` | Las cajitas de los controles J1 y J2. Como los mandos quedaron cableados (F5), se cortan cuando tengamos el tamaño final de cada mando y su cable entre por el hueco trasero. |
 | `dxf/piezas/*.dxf` | Cada pieza suelta, por si el local las quiere acomodar a su manera o toca repetir una. |
 | `dxf/guia_con_referencias/` | Las mismas hojas con nombres y contornos de referencia en gris. **No se mandan al láser.** |
 | `pdf/plantillas_1a1_carta.pdf` | Tapa, tapa de un control y base a escala real, en hoja carta. |

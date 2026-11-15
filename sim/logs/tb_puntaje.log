@@ -1,6 +1,0 @@
-VCD info: dumpfile sim/tb_puntaje.vcd opened for output.
-== tb_puntaje ==
-------------------------------------------------------------
-RESULTADO tb_puntaje: PASA (11 verificaciones)
-------------------------------------------------------------
-tb/tb_puntaje.v:91: $finish called at 1880000 (1ps)

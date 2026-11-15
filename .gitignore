@@ -1,45 +1,33 @@
-# Simulación: los ejecutables y las ondas se regeneran con sim/correr_todo.sh
-sim/build/
-sim/*.vcd
-sim/partida.txt
-sim/logs/*.compilacion.log
+# Simulación (se regenera con fpga/sim/correr_pruebas.sh)
+fpga/sim/build/
+*.vcd
+*.wlf
+fpga/work/
+fpga/sim/work/
+transcript
 
-# Quartus II
-quartus/db/
-quartus/incremental_db/
-quartus/salida/
-quartus/output_files/
-quartus/simulation/
-quartus/greybox_tmp/
-quartus/*.qws
-quartus/*.bak
-quartus/*.rpt
-quartus/*.summary
-quartus/*.smsg
-quartus/*.jdi
-quartus/*.pin
-quartus/*.sof
-quartus/*.pof
-quartus/*.done
-quartus/*.qarlog
-quartus/PLLJ_PLLSPE_INFO.txt
-quartus/c5_pin_model_dump.txt
+# Quartus
+fpga/db/
+fpga/incremental_db/
+fpga/output_files/
+fpga/simulation/
+fpga/greybox_tmp/
+*.qws
+*.bak
+*.qarlog
+
+# LaTeX (los PDF sí se suben)
+informes/**/*.aux
+informes/**/*.log
+informes/**/*.out
+informes/**/*.toc
+informes/**/*.fls
+informes/**/*.fdb_latexmk
+informes/**/*.synctex.gz
 
 # Python y sistema
 __pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
-
-# Etapas del paso a paso: se regeneran con correr_etapaN.sh
-etapas/*/sim/*.vvp
-etapas/*/sim/*.vcd
-etapas/*/sim/pantallas_*.txt
-etapas/*/salida/
-etapas/*/db/
-etapas/*/incremental_db/
-docs/figuras/*.aux
-docs/figuras/*.log
-
-# Caja: el caché de matplotlib/ezdxf no se sube
 caja/__pycache__/
