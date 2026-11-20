@@ -1,0 +1,15 @@
+PASS: inicializacion MAX7219 14/14
+PASS: cuadro verificado J1=3 J2=3, SNAP=0dbb
+PASS: los dos controles detectados tras antirrebote
+PASS: START externo habilita JUEGO
+PASS: rebotes cortos rechazados
+PASS: cuadro verificado J1=2 J2=4, SNAP=0a3b
+PASS: botones UP/DOWN actualizan la imagen
+PASS: cuadro verificado J1=3 J2=3, SNAP=0dbb
+PASS: movimientos inversos actualizan la imagen
+PASS: cuadro verificado J1=3 J2=3, SNAP=0dbb
+PASS: UP+DOWN simultaneos no mueven paletas
+PASS: controles cableados J1 y J2 + antirrebote
+PASS: movimientos de ambas paletas reflejados en MAX7219
+PASS: todas las tramas verificadas con 32 bits
+tb/tb_hct_controles_cableados_f5.v:272: $finish called at 2119940000 (1ps)

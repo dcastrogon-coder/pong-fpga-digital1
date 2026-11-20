@@ -1,0 +1,9 @@
+PASS: canal 0: 14 init + 8 filas; 22 tramas; tCP/tCH/tCL/tDS/tCSW/tLDCK
+PASS: canal 1: 14 init + 8 filas; 22 tramas; tCP/tCH/tCL/tDS/tCSW/tLDCK
+PASS: canal 2: 14 init + 8 filas; 22 tramas; tCP/tCH/tCL/tDS/tCSW/tLDCK
+PASS: canal 3: 14 init + 8 filas; 22 tramas; tCP/tCH/tCL/tDS/tCSW/tLDCK
+PASS: GC7219C, 4 escenarios temporales verificados
+PASS: 14/14 comandos y 8/8 filas por escenario
+PASS: 88/88 tramas comprobadas (4 x 22)
+AVISO: no modela dispersion de flancos, cableado ni encendido de 5 V
+tb/tb_gc7219_temporizacion_f5.v:274: $finish called at 752428000 (1ps)

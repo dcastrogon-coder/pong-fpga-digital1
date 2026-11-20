@@ -1,0 +1,14 @@
+OK 1: X=7 Y=3 DX=1 DY=1
+OK 2: X=8 Y=4 DX=1 DY=1
+OK 3: X=9 Y=5 DX=1 DY=1
+OK 4: X=10 Y=6 DX=1 DY=1
+OK 5: X=11 Y=7 DX=1 DY=1
+OK 6: X=12 Y=6 DX=1 DY=0
+OK 7: X=12 Y=6 DX=1 DY=0
+OK 8: X=12 Y=6 DX=1 DY=0
+OK 9: X=12 Y=5 DX=0 DY=0
+OK 10: X=11 Y=4 DX=0 DY=0
+OK 11: X=7 Y=3 DX=0 DY=1
+OK 12: X=6 Y=4 DX=0 DY=1
+PASS: pelota diagonal F5; 12 verificaciones correctas
+tb/tb_pelota_diagonal_f5.v:102: $finish called at 480000 (1ps)

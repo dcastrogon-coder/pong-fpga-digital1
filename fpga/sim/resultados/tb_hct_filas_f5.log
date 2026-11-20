@@ -1,0 +1,26 @@
+PASS: init 1/14 = 0f00
+PASS: init 2/14 = 0c00
+PASS: init 3/14 = 0900
+PASS: init 4/14 = 0b07
+PASS: init 5/14 = 0a08
+PASS: init 6/14 = 0100
+PASS: init 7/14 = 0200
+PASS: init 8/14 = 0300
+PASS: init 9/14 = 0400
+PASS: init 10/14 = 0500
+PASS: init 11/14 = 0600
+PASS: init 12/14 = 0700
+PASS: init 13/14 = 0800
+PASS: init 14/14 = 0c01
+PASS: fila 1/8, direccion 8, trama 08000800
+PASS: fila 2/8, direccion 7, trama 07000700
+PASS: fila 3/8, direccion 6, trama 06000600
+PASS: fila 4/8, direccion 5, trama 05800581
+PASS: fila 5/8, direccion 4, trama 04800401
+PASS: fila 6/8, direccion 3, trama 03000300
+PASS: fila 7/8, direccion 2, trama 02000200
+PASS: fila 8/8, direccion 1, trama 01000100
+PASS: 14/14 comandos MAX7219 correctos
+PASS: 8/8 filas del primer cuadro correctas
+PASS: 22/22 tramas de 32 bits correctas
+tb/tb_hct_filas_f5.v:160: $finish called at 753790000 (1ps)

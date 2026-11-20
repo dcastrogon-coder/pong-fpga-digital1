@@ -4,14 +4,18 @@
 #  Pong en FPGA - Electrónica Digital 1 - UNAL
 #  Juan David Ortiz Muñoz, David Eduardo Chivata Arias, Daniel Felipe Castro González
 # ----------------------------------------------------------------------------
-#  Los testbenches de F3 los corrimos originalmente en Questa (Quartus Prime
-#  25.1 Lite). Este script los corre con Icarus Verilog, que es gratis y
-#  funciona en cualquier computador o en GitHub, para que cualquiera pueda
-#  repetir las pruebas sin instalar Quartus.
+#  Los testbenches los corrimos originalmente en Questa (Quartus Prime 25.1
+#  Lite). Este script los corre con Icarus Verilog, que es gratis y funciona
+#  en cualquier computador o en GitHub, para que cualquiera pueda repetir las
+#  pruebas sin instalar Quartus.
 #
-#  Uso (desde la carpeta fpga/):
-#       bash sim/correr_pruebas.sh            # las 19 pruebas
-#       bash sim/correr_pruebas.sh pong       # solo las que contengan "pong"
+#  Corre todos los tb/tb_*.v contra el RTL final (F6). Los testbenches de
+#  tb/anteriores_al_movimiento_diagonal/ no se corren: esperan el movimiento
+#  de la pelota que teníamos antes de F5.
+#
+#  Uso (desde cualquier carpeta):
+#       bash fpga/sim/correr_pruebas.sh            # todas las pruebas
+#       bash fpga/sim/correr_pruebas.sh f5         # solo las que contengan "f5"
 #
 #  Cada prueba deja su registro en sim/resultados/<testbench>.log
 # ============================================================================
@@ -20,9 +24,7 @@ cd "$(dirname "$0")/.."
 
 mkdir -p sim/resultados sim/build
 FILTRO="${1:-}"
-
-# Todo el RTL del núcleo (el top de la prueba visual de F4 no hace falta)
-RTL=$(ls rtl/*.v | grep -v pong_f4_visual_top.v)
+RTL=$(ls rtl/*.v)
 
 pasan=0; fallan=0; resumen=""
 
@@ -30,7 +32,8 @@ for tb in tb/tb_*.v; do
   nombre=$(basename "$tb" .v)
   if [[ -n "$FILTRO" && "$nombre" != *"$FILTRO"* ]]; then continue; fi
 
-  if ! iverilog -g2012 -o "sim/build/$nombre.vvp" "$tb" $RTL > "sim/build/$nombre.compilacion.log" 2>&1; then
+  # -s fija el testbench como raíz: en rtl/ conviven varios tops (F3, F4, F5 y F6)
+  if ! iverilog -g2012 -s "$nombre" -o "sim/build/$nombre.vvp" "$tb" $RTL > "sim/build/$nombre.compilacion.log" 2>&1; then
     resumen+="  NO COMPILA  $nombre\n"; fallan=$((fallan+1)); continue
   fi
   vvp -n "sim/build/$nombre.vvp" > "sim/resultados/$nombre.log" 2>&1
@@ -42,7 +45,7 @@ for tb in tb/tb_*.v; do
     resumen+="  FALLA      $nombre   (ver sim/resultados/$nombre.log)\n"; fallan=$((fallan+1))
   else
     # Línea de resumen que imprime cada testbench (si la tiene)
-    detalle=$(grep -h -E "COMPROBACIONES|TOTAL VERIFICADO|PRUEBAS|RESULTADO|OK:" "sim/resultados/$nombre.log" | tail -1 | sed 's/^ *//')
+    detalle=$(grep -h -E "COMPROBACIONES|TOTAL VERIFICADO|PRUEBAS|RESULTADO|OK:|PASS" "sim/resultados/$nombre.log" | tail -1 | sed 's/^ *//' | cut -c1-80)
     resumen+="  PASA       $nombre   $detalle\n"; pasan=$((pasan+1))
   fi
 done

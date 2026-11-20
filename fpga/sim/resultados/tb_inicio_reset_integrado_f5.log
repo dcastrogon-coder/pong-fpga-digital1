@@ -1,0 +1,15 @@
+PASS prueba 1
+PASS prueba 2
+PASS prueba 3
+PASS prueba 4
+PASS prueba 5
+PASS prueba 6
+PASS prueba 7
+PASS prueba 8
+PASS prueba 9
+PASS prueba 10
+PASS prueba 11
+----------------------------
+INICIO Y RESET F5: 11/11 PASS
+----------------------------
+tb/tb_inicio_reset_integrado_f5.v:198: $finish called at 2111000 (1ps)

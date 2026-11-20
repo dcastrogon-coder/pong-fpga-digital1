@@ -39,7 +39,7 @@
 
 set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE10E22C8
-set_global_assignment -name TOP_LEVEL_ENTITY pong_f4_visual_top
+set_global_assignment -name TOP_LEVEL_ENTITY pong_f6_integracion_top
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 25.1STD.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "20:33:39  NOVEMBER 02, 2026"
 set_global_assignment -name LAST_QUARTUS_VERSION "25.1std.0 Lite Edition"
@@ -61,6 +61,74 @@ set_location_assignment PIN_23 -to CLK_SYS
 set_location_assignment PIN_28 -to DIN
 set_location_assignment PIN_31 -to CLK_LED
 set_location_assignment PIN_33 -to LOAD
+set_location_assignment PIN_30 -to J1_UP_N
+set_location_assignment PIN_32 -to J1_DOWN_N
+set_location_assignment PIN_34 -to J1_DETECT_N
+set_location_assignment PIN_39 -to J2_UP_N
+set_location_assignment PIN_38 -to J2_DOWN_N
+set_location_assignment PIN_42 -to J2_DETECT_N
+set_location_assignment PIN_43 -to START_N
+set_location_assignment PIN_44 -to RESET_N
+set_location_assignment PIN_46 -to PAUSE_N
+set_location_assignment PIN_49 -to HCT_EN
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LOAD
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DIN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLK_SYS
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLK_LED
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LOAD
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to DIN
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to CLK_LED
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to J1_DETECT_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to J1_DOWN_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to J1_UP_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to J2_DETECT_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to J2_DOWN_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to J2_UP_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to PAUSE_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to RESET_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to START_N
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to HCT_EN
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to HCT_EN
+set_instance_assignment -name SLEW_RATE 2 -to HCT_EN
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J2_BCD[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J2_BCD[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J2_BCD[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J2_BCD[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J1_BCD[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J1_BCD[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J1_BCD[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SCORE_J1_BCD[3]
+set_location_assignment PIN_106 -to SCORE_J2_BCD[0]
+set_location_assignment PIN_110 -to SCORE_J2_BCD[1]
+set_location_assignment PIN_111 -to SCORE_J2_BCD[2]
+set_location_assignment PIN_112 -to SCORE_J2_BCD[3]
+set_location_assignment PIN_101 -to SCORE_J1_BCD[0]
+set_location_assignment PIN_103 -to SCORE_J1_BCD[1]
+set_location_assignment PIN_104 -to SCORE_J1_BCD[2]
+set_location_assignment PIN_105 -to SCORE_J1_BCD[3]
+set_global_assignment -name ENABLE_OCT_DONE OFF
+set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
+set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
+set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
+set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J2_BCD[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J2_BCD[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J2_BCD[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J2_BCD[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J1_BCD[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J1_BCD[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J1_BCD[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to SCORE_J1_BCD[0]
+set_global_assignment -name VERILOG_FILE rtl/pong_f5_controles_top.v
+set_global_assignment -name VERILOG_FILE rtl/pong_f5_core.v
 set_global_assignment -name SDC_FILE pong_f3.sdc
 set_global_assignment -name VERILOG_FILE rtl/supervisor_fallos.v
 set_global_assignment -name VERILOG_FILE rtl/transmisor_max7219.v
@@ -78,14 +146,7 @@ set_global_assignment -name VERILOG_FILE rtl/boton_evento.v
 set_global_assignment -name VERILOG_FILE rtl/reset_seguro.v
 set_global_assignment -name VERILOG_FILE rtl/supervisor_rf.v
 set_global_assignment -name VERILOG_FILE rtl/pong_f4_visual_top.v
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LOAD
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DIN
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLK_SYS
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to CLK_LED
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to LOAD
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to DIN
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to CLK_LED
+set_global_assignment -name VERILOG_FILE rtl/filtro_entrada_cableada.v
+set_global_assignment -name VERILOG_FILE rtl/supervisor_cableado.v
+set_global_assignment -name VERILOG_FILE rtl/pong_f6_integracion_top.v
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

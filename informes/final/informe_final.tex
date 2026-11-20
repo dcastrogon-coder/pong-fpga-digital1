@@ -1,0 +1,847 @@
+% ============================================================================
+% INFORME FINAL - PONG PARA DOS JUGADORES EN FPGA
+% Electrónica Digital I - Universidad Nacional de Colombia, sede Bogotá
+% Juan David Ortiz Muñoz, David Eduardo Chivata Arias y Daniel Felipe Castro González
+%
+% Cómo usarlo en Overleaf:
+%   1. New Project -> Upload Project y subir el .zip completo (main.tex + figuras/).
+%   2. Compilar con pdfLaTeX (dos veces, para las referencias).
+%   Si falta una imagen, el documento compila igual y deja un recuadro con su nombre.
+%
+% Imágenes que usa el informe (carpeta figuras/):
+%   Diagramas: fig_sistema.pdf, fig_rtl.pdf, fig_fsm.pdf, fig_conexiones.pdf, fig_cronograma.pdf
+%   Simulación (Questa): F3_B2_pelota_wave_1.png, F3_B5_control_juego_wave.png,
+%     F3_B8_transmisor_max7219_wave.png, F3_GOLES_VICTORIA_13_DE_13.png
+%   Tarjeta y montaje: F4_Prueba_Visual_MAX7219.png, foto_montaje_final.jpg,
+%     foto_controles_protoboard.jpg, esquematico_controles.jpg
+%   Placa (F8): esquematico_pcb.jpg, layout_pcb_kicad.jpg, render_pcb_superior.jpg,
+%     render_pcb_inferior.jpg, foto_pcb_componentes.jpg, foto_pcb_soldaduras.jpg
+%   Pendientes de tomar: foto_partida.jpg (partida en curso con el marcador)
+% ============================================================================
+\documentclass[conference,a4paper]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands,es-tabla,es-nodecimaldot]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{newunicodechar}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+
+\graphicspath{{figuras/}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\ok}{\textcolor{green!45!black}{\textbf{Cumple}}}
+\newcommand{\pasa}{\textcolor{green!45!black}{\textbf{Pasa}}}
+\newcommand{\obs}{\textcolor{green!45!black}{\textbf{Observado}}}
+\newcommand{\parcial}{\textcolor{orange!80!black}{\textbf{Parcial}}}
+\newcommand{\pendiente}[1]{\textcolor{red}{[#1]}}
+\newcommand{\sig}[1]{\texttt{\detokenize{#1}}}
+
+% Inserta la imagen si existe en figuras/; si no, deja un recuadro con su nombre.
+\newlength{\anchofig}
+\newcommand{\figura}[2]{%
+  \setlength{\anchofig}{#2}%
+  \IfFileExists{figuras/#1}%
+    {\includegraphics[width=\anchofig]{#1}}%
+    {\fbox{\parbox[c][0.42\anchofig][c]{0.96\anchofig}{\centering\footnotesize
+      Insertar imagen:\\[2pt]\texttt{\detokenize{#1}}}}}}
+
+\begin{document}
+
+% ============================================================================
+% Título
+% ============================================================================
+\title{Pong para dos jugadores en FPGA:\\ informe final del proyecto}
+
+\author{\IEEEauthorblockN{Juan David Ortiz Muñoz, David Eduardo Chivata Arias y Daniel Felipe Castro González}
+\IEEEauthorblockA{Electrónica Digital I --- Departamento de Ingeniería Eléctrica y Electrónica\\
+Universidad Nacional de Colombia, sede Bogotá\\
+\{juaortizmu, dchivata, dcastrogon\}@unal.edu.co}}
+
+\maketitle
+
+\begin{abstract}
+Diseñamos, implementamos y verificamos un videojuego Pong para dos jugadores hecho solo con lógica digital, descrita en Verilog HDL sobre una FPGA Cyclone~IV~E EP4CE10E22C8N. La FPGA lleva la posición de las paletas y de la pelota, decide rebotes y goles con lógica combinacional, controla la partida con una máquina de estados de seis estados y cuenta el puntaje hasta nueve. El tablero de $8\times16$ LED se dibuja en dos matrices FC-16 en cascada, cuyo controlador es compatible con el MAX7219, y el puntaje sale en BCD hacia dos decodificadores CD4511BE y dos displays de siete segmentos. Las salidas de 3,3~V se adaptan a 5~V con dos SN74HCT245N que la FPGA habilita después del arranque. Seguimos una metodología por fases, desde la especificación hasta el montaje: los 35 bancos de prueba de la regresión final pasan, la compilación final no tiene errores y cumple con el reloj de 50~MHz ($+6{,}686$~ns de \textit{setup} y $+0{,}186$~ns de \textit{hold}), y en la tarjeta jugamos una partida completa hasta 9--6 con victoria, RESET y nueva partida. Por último, pasamos el circuito de las matrices y el marcador a una placa impresa diseñada en KiCad. Los controles inalámbricos de la propuesta se reemplazaron por mandos cableados con detección de conexión.
+\end{abstract}
+
+\begin{IEEEkeywords}
+FPGA, Verilog HDL, Pong, máquina de estados finitos, MAX7219, CD4511BE, SN74HCT245N, verificación funcional, Quartus Prime.
+\end{IEEEkeywords}
+
+% ============================================================================
+% 1. Introducción
+% ============================================================================
+\section{Introducción}
+
+El Pong reúne casi todo lo que se ve en un curso de electrónica digital. Hay entradas asíncronas que se deben sincronizar y filtrar; posiciones que se guardan en registros y cambian con contadores; decisiones combinacionales, como saber si la pelota tocó la paleta o fue gol; un control secuencial que define en qué momento de la partida estamos, y una salida que exige un protocolo serial con tiempos precisos~\cite{mano,brown,tocci}. Por eso escogimos implementarlo por completo en una FPGA y sin microcontroladores: cada bloque tuvo que diseñarse con tablas de verdad, tablas de transición, ecuaciones y máquinas de estados antes de escribirse en Verilog~\cite{propuesta}.
+
+\subsection{Objetivos}
+
+El objetivo general fue diseñar e implementar en una FPGA un Pong para dos jugadores, con visualización en matrices LED, marcador en displays de siete segmentos y controles independientes para cada jugador. Los objetivos específicos de la propuesta fueron~\cite{propuesta}:
+\begin{enumerate}
+\item Definir las reglas del juego, las entradas, las salidas y los estados del sistema.
+\item Diseñar cada bloque con tablas de verdad, ecuaciones y máquinas de estados.
+\item Implementar en Verilog las paletas, la pelota, las colisiones y el puntaje.
+\item Generar la imagen de $8\times16$ y la interfaz con los dos controladores MAX7219.
+\item Integrar dos controles inalámbricos, uno por jugador.
+\item Mostrar el puntaje en displays de siete segmentos.
+\item Simular cada módulo y el sistema completo.
+\item Implementar el prototipo y verificarlo sobre la FPGA.
+\end{enumerate}
+
+Este informe recoge todo el proyecto: la metodología y las fases (Sección~\ref{sec:metodologia}), la especificación (Sección~\ref{sec:especificacion}), la arquitectura (Sección~\ref{sec:arquitectura}), el diseño lógico formal (Sección~\ref{sec:diseno}), la implementación en hardware (Sección~\ref{sec:hardware}), la verificación en simulación, síntesis y tarjeta (Sección~\ref{sec:verificacion}), las placas de F8 (Sección~\ref{sec:pcb}), el cumplimiento de requisitos (Sección~\ref{sec:cumplimiento}), el uso de inteligencia artificial y las conclusiones. El código, las memorias de cada fase, los registros de simulación y los reportes de Quartus están en el repositorio del proyecto~\cite{repo}.
+
+% ============================================================================
+% 2. Metodología
+% ============================================================================
+\section{Metodología de trabajo}
+\label{sec:metodologia}
+
+Seguimos la ruta de nuestra guía metodológica~\cite{guia}: \emph{requisitos $\rightarrow$ modelo lógico $\rightarrow$ RTL $\rightarrow$ simulación $\rightarrow$ síntesis $\rightarrow$ hardware}. Cada fase terminaba en un punto de control (PC) con una evidencia concreta, y no pasábamos a la siguiente sin cerrar la anterior. La Tabla~\ref{tab:fases} resume las fases y la Fig.~\ref{fig:cronograma} compara el cronograma propuesto con el real.
+
+\begin{table*}[!t]
+\centering
+\caption{Fases del proyecto, puntos de control y evidencia}
+\label{tab:fases}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l l l c Y@{}}
+\toprule
+\textbf{Fase} & \textbf{Contenido} & \textbf{Fecha} & \textbf{PC} & \textbf{Evidencia principal} \\
+\midrule
+F0 & Especificación funcional, rev.~1.2 & 2 nov.\ 2026 & PC0 & Reglas, parámetros, requisitos R01--R12 y FSM de seis estados~\cite{f0} \\
+F1 & Arquitectura por bloques, rev.~1.1 & 2 nov.\ 2026 & PC1 & Contratos de entradas y salidas de cada módulo~\cite{f1} \\
+F2 & Diseño lógico formal, rev.~1.2 & 2 nov.\ 2026 & PC1 & Tablas de verdad y de transición, ecuaciones y FSM del juego y del transmisor~\cite{f2} \\
+F3 & RTL en Verilog y simulación & 3 nov.\ 2026 & PC2--PC3 & 15 módulos, 19 bancos de prueba, 49/49 comprobaciones de integración, síntesis sin errores~\cite{f3} \\
+F4 & Interfaz visual con las dos matrices & 7 nov.\ 2026 & PC4 & Compilación, programación JTAG y cuadro inicial en las dos matrices \\
+F5 & Controles cableados y validación física & 14 nov.\ 2026 & PC5 & Juego completo en la tarjeta, pelota diagonal, 18 bancos de prueba vigentes (12/12, 14/14, 28/28)~\cite{f5} \\
+F6 & Marcador, síntesis final y montaje & 14 nov.\ 2026 & PC5--PC6 & Partida real hasta 9--6, victoria, RESET y nueva partida~\cite{f6} \\
+F7 & Informe del prototipo en protoboard & 15 nov.\ 2026 & PC6 & Explicación lógica y física de cada subsistema \\
+F8 & Esquemas y PCB en KiCad & nov.\ 2026 & --- & Esquema, diseño y placa principal fabricada y soldada; mandos y pulsadores en protoboard con aprobación del profesor \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{figure}[!t]
+  \centering
+  \figura{fig_cronograma.pdf}{\columnwidth}
+  \caption{Cronograma propuesto frente al cronograma real del proyecto.}
+  \label{fig:cronograma}
+\end{figure}
+
+Dedicar las dos primeras semanas a la especificación y al diseño formal fue la decisión que más nos ayudó. Como las tablas de F2 ya existían, la descripción en Verilog fue casi directa y los bancos de prueba se pudieron escribir contra esas mismas tablas. Además, integramos el hardware por partes (primero la pantalla, luego los mandos y al final el marcador), de modo que cada falla quedaba acotada a lo último que se había conectado.
+
+% ============================================================================
+% 3. Especificación
+% ============================================================================
+\section{Especificación del juego (F0)}
+\label{sec:especificacion}
+
+\subsection{Reglas}
+
+El tablero es una matriz de 8 filas por 16 columnas. Cada paleta ocupa dos LED verticales: la del jugador~1 (J1) en la columna~0 y la del jugador~2 (J2) en la columna~15, y su fila superior $Y_P$ puede valer de 0 a 6. La pelota es un solo LED con posición $(X_B,Y_B)$ y dirección $(D_X,D_Y)$; arranca en $(7,3)$ y avanza un paso en diagonal cada 200~ms. Las paletas se mueven un paso cada 250~ms mientras se mantiene presionado UP o DOWN.
+
+La pelota rebota en los bordes superior e inferior y en las paletas. Si llega a la columna de una paleta y la paleta no cubre su fila, es gol para el otro jugador: el marcador suma un punto, la pelota vuelve al centro y el siguiente saque va en dirección alterna. Gana quien llegue primero a nueve puntos, y en ese momento el juego se detiene hasta un RESET. START inicia la partida y cada saque, PAUSE congela y reanuda el juego sin perder posiciones ni puntaje, y RESET devuelve todo al estado inicial.
+
+\subsection{Requisitos}
+
+La especificación fijó doce requisitos verificables (Tabla~\ref{tab:requisitos}). Cada prueba de simulación y de hardware del proyecto está asociada al menos a uno de ellos.
+
+\begin{table}[!t]
+\centering
+\caption{Requisitos de la especificación F0}
+\label{tab:requisitos}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l Y@{}}
+\toprule
+\textbf{Req.} & \textbf{Descripción} \\
+\midrule
+R01 & Cada jugador controla solo su paleta \\
+R02 & Las paletas no salen de las filas 0--6 \\
+R03 & La pelota avanza a velocidad fija (diagonal desde F5) \\
+R04 & Rebotes en bordes, paletas y esquinas de la paleta \\
+R05 & Cada gol suma exactamente un punto \\
+R06 & Puntaje 0--9, victoria al llegar a 9 y RESET \\
+R07 & Los 128 LED representan las posiciones reales \\
+R08 & Inicialización y tramas correctas hacia las dos matrices \\
+R09 & Vigencia del enlace de cada mando, pérdida y recuperación \\
+R10 & Tensiones, corrientes y protección de los GPIO \\
+R11 & PAUSE detiene y reanuda sin perder datos \\
+R12 & Prioridades: enlace $>$ PAUSE $>$ gol \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================================
+% 4. Arquitectura
+% ============================================================================
+\section{Arquitectura (F1)}
+\label{sec:arquitectura}
+
+\subsection{Visión general del sistema}
+
+La Fig.~\ref{fig:sistema} muestra el sistema completo. La tarjeta A-C4E6E10 aporta la FPGA y el oscilador de 50~MHz. Cada jugador usa un mando cableado de tres líneas (UP, DOWN y DETECT) y la partida se maneja con tres pulsadores (START, PAUSE y RESET). La FPGA genera tres señales seriales para las matrices (DIN, CLK\_LED y LOAD), ocho bits BCD para el marcador y la señal HCT\_EN, que habilita los búferes de nivel.
+
+\begin{figure*}[!t]
+  \centering
+  \figura{fig_sistema.pdf}{\textwidth}
+  \caption{Arquitectura del sistema implementado. A la izquierda, las entradas físicas con sus pines; en el centro, los bloques descritos en Verilog; a la derecha, la interfaz de niveles y los actuadores.}
+  \label{fig:sistema}
+\end{figure*}
+
+\subsection{Bloques del diseño digital}
+
+Todo el diseño trabaja con un único reloj de 50~MHz y avanza con pulsos de habilitación de un ciclo, no con relojes derivados; así se evitan problemas de temporización entre dominios. La Tabla~\ref{tab:modulos} resume los módulos y la Fig.~\ref{fig:rtl} muestra cómo se conectan.
+
+\begin{table}[!t]
+\centering
+\caption{Módulos Verilog del diseño final}
+\label{tab:modulos}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l Y@{}}
+\toprule
+\textbf{Módulo} & \textbf{Función} \\
+\midrule
+\sig{pong_f6_integracion_top} & Top final: entradas activas en bajo, salidas a matrices y marcador, habilitación de búferes \\
+\sig{pong_f5_core} & Núcleo del juego que interconecta los bloques \\
+\sig{reset_seguro} & Reset de encendido y filtrado del pulsador RESET \\
+\sig{boton_evento} & Sincronizador, antirrebote de 20~ms y pulso de un ciclo (START, PAUSE) \\
+\sig{supervisor_cableado} & Filtrado de UP, DOWN y DETECT de cada mando; comandos y vigencia \\
+\sig{control_juego} & FSM de seis estados y señales de control \\
+\sig{temporizadores} & Pulsos de 200~ms (pelota) y 250~ms (paletas) \\
+\sig{paletas} & Posición de las dos paletas con límites \\
+\sig{pelota} & Registro de posición y dirección; movimiento diagonal \\
+\sig{colisiones} & Lógica combinacional de impactos y goles \\
+\sig{puntaje} & Contadores 0--9 y predicción de victoria \\
+\sig{marcador_bcd} & Buses BCD hacia los decodificadores \\
+\sig{captura_imagen} & Instantánea de 13 bits de las posiciones por cuadro \\
+\sig{imagen} & Bytes de cada matriz para la fila pedida \\
+\sig{transmisor_max7219} & FSM serial: configuración y refresco de la cascada \\
+\sig{supervisor_fallos} & Detección de estados imposibles y recuperación \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure*}[!t]
+  \centering
+  \figura{fig_rtl.pdf}{\textwidth}
+  \caption{Jerarquía del núcleo en Verilog con las señales principales entre módulos.}
+  \label{fig:rtl}
+\end{figure*}
+
+Tres señales de inicialización se combinan en una sola:
+\begin{equation}
+\begin{aligned}
+\mathrm{INIT\_GLOBAL} ={}& \mathrm{POR\_REQ} \lor \mathrm{RESET\_CLEAN}\\
+&\lor \mathrm{FAULT\_RECOVER},
+\end{aligned}
+\end{equation}
+que reinicia de forma síncrona todos los registros del juego. En el top final, además, el núcleo se mantiene en reset mientras los búferes de salida no están habilitados (RESET\_RAW $=\overline{\mathrm{RESET\_N}} \lor \overline{\mathrm{HCT\_EN}}$), de modo que la partida nunca avanza con las salidas en alta impedancia.
+
+% ============================================================================
+% 5. Diseño lógico
+% ============================================================================
+\section{Diseño lógico formal (F2) e implementación RTL (F3)}
+\label{sec:diseno}
+
+En F2 cada bloque quedó definido con tablas y ecuaciones antes de escribir código~\cite{f2}. En F3 esas ecuaciones se tradujeron a Verilog casi línea por línea, por lo que aquí las presentamos ya con los nombres de las señales del RTL.
+
+\subsection{Entradas}
+
+Cada entrada pasa por dos flip-flops de sincronización (SYNC\_1, SYNC\_2) y un contador de estabilidad de $N_{DB}=10^6$ ciclos (20~ms a 50~MHz). Un cambio solo se acepta si el nivel sincronizado se mantiene durante todo ese tiempo. START y PAUSE generan un pulso de un ciclo al confirmar la pulsación. En cada mando, si UP y DOWN están presionados a la vez, o si el mando está desconectado, el comando es ``mantener'':
+\begin{equation}
+\mathrm{CMD} =
+\begin{cases}
+01 & \text{(subir) si } \mathrm{UP}\land\lnot\mathrm{DOWN}\land\mathrm{OK},\\
+10 & \text{(bajar) si } \mathrm{DOWN}\land\lnot\mathrm{UP}\land\mathrm{OK},\\
+00 & \text{(mantener) en otro caso.}
+\end{cases}
+\end{equation}
+La vigencia de cada mando es $\mathrm{RFi\_OK}=\lnot\,\mathrm{Ji\_DETECT\_N}$ (filtrada) y la del sistema es $\mathrm{RF\_OK\_EFF}=\mathrm{RF1\_OK}\land\mathrm{RF2\_OK}$. Conservamos el nombre ``RF'' de las señales porque la arquitectura se diseñó para un enlace inalámbrico; con los mandos cableados, DETECT cumple ese papel.
+
+\subsection{Máquina de estados del juego}
+
+La FSM de \sig{control_juego} (Fig.~\ref{fig:fsm}) tiene seis estados codificados en tres bits. La Tabla~\ref{tab:fsm} resume sus transiciones. En JUEGO las prioridades son: pérdida de un mando, luego PAUSE y luego gol, como exige R12.
+
+\begin{figure}[!t]
+  \centering
+  \figura{fig_fsm.pdf}{\columnwidth}
+  \caption{FSM de control del juego (\sig{control_juego.v}). INIT\_GLOBAL lleva a ESPERA desde cualquier estado.}
+  \label{fig:fsm}
+\end{figure}
+
+\begin{table}[!t]
+\centering
+\caption{Transiciones de la FSM del juego}
+\label{tab:fsm}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l Y l@{}}
+\toprule
+\textbf{Estado (código)} & \textbf{Condición} & \textbf{Siguiente} \\
+\midrule
+ESPERA (000) & OK $\land$ START & JUEGO \\
+JUEGO (001) & $\lnot$OK & PAUSA\_RF \\
+ & OK $\land$ PAUSE & PAUSA\_MAN. \\
+ & OK $\land\,\lnot$PAUSE $\land$ gol & PUNTO \\
+PUNTO (010) & WIN\_NEXT & FIN \\
+ & $\lnot$WIN\_NEXT & ESPERA \\
+PAUSA\_RF (011) & OK $\land$ START & JUEGO \\
+FIN (100) & solo INIT\_GLOBAL & ESPERA \\
+PAUSA\_MAN. (101) & OK $\land$ PAUSE & JUEGO \\
+110, 111 & siempre & ESPERA \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Con $G_1=\mathrm{GOAL\_J1}$ y $G_2=\mathrm{GOAL\_J2}$, las señales de control de la FSM son:
+\begin{align}
+\mathrm{GAME\_EN} &= (S=\mathrm{JUEGO})\land\mathrm{OK}\notag\\
+&\qquad\land\lnot\mathrm{PAUSE}\land\lnot\mathrm{INIT},\\
+\mathrm{CAPTURE\_GOAL} &= \mathrm{GAME\_EN}\land(G_1\oplus G_2),\\
+\mathrm{POINT\_EN} &= (S=\mathrm{PUNTO})\land\lnot\mathrm{INIT},\\
+\mathrm{CENTER\_EN} &= \mathrm{POINT\_EN}\land\lnot\mathrm{WIN\_NEXT}.
+\end{align}
+Como el estado PUNTO dura un solo ciclo, POINT\_EN suma exactamente un punto por gol (R05). La dirección del saque, SERVE\_DIR, se invierte con cada CAPTURE\_GOAL.
+
+\subsection{Temporizadores y paletas}
+
+Dos contadores de 24 bits, habilitados solo con GAME\_EN, generan TICK\_BALL cada $N_{B}=10^7$ ciclos (200~ms) y TICK\_PADDLE cada $N_{P}=1{,}25\times10^7$ ciclos (250~ms). REARM\_TIMERS los reinicia al salir de ESPERA o de una pausa, para que el primer paso tenga siempre la duración completa. Con $\mathrm{EP}=\mathrm{GAME\_EN}\land\mathrm{TICK\_PADDLE}$, cada paleta sube si $\mathrm{CMD}=01$ y $Y_P>0$, y baja si $\mathrm{CMD}=10$ y $Y_P<6$ (R02).
+
+\subsection{Pelota en diagonal}
+
+En F5 cambiamos el movimiento de la pelota: en cada TICK\_BALL avanza a la vez una columna y una fila, salvo cuando hay impacto, gol o reinicio~\cite{f5}:
+\begin{align}
+X_{c} &= X_B + (D_X\,?\,1:-1),\\
+R_Y &= (Y_B=0\land\lnot D_Y)\lor(Y_B=7\land D_Y),\\
+D_{Y,c} &= D_Y\oplus R_Y,\\
+Y_{c} &= Y_B + (D_{Y,c}\,?\,1:-1).
+\end{align}
+Si hay impacto en una paleta, $X_B$ se conserva y $D_X$ se invierte; si hay gol, ningún registro cambia hasta que la FSM centra la pelota.
+
+\subsection{Colisiones}
+
+El módulo de colisiones es combinacional. Con $\mathrm{AB}=\mathrm{GAME\_EN}\land\mathrm{TICK\_BALL}$ detecta el intento de entrar a la columna de una paleta y lo compara con las dos filas que ella ocupa:
+\begin{align}
+\mathrm{EL} &= \lnot D_X\land(X_B=1)\land(X_c=0),\\
+\mathrm{ER} &= D_X\land(X_B=14)\land(X_c=15),\\
+\mathrm{P1} &= (Y_c=Y_{P1})\lor(Y_c=Y_{P1}+1),\\
+\mathrm{HIT\_J1} &= \mathrm{AB}\land\mathrm{EL}\land\mathrm{P1},\\
+\mathrm{GOAL\_J2} &= \mathrm{AB}\land\mathrm{EL}\land\lnot\mathrm{P1},
+\end{align}
+y de forma simétrica para J2 con ER y P2. Para comparar se usa la posición \emph{efectiva} de la paleta, es decir, la que tendrá después del movimiento que ocurra en ese mismo ciclo; así una paleta que llega justo a tiempo sí detiene la pelota (R04).
+
+\subsection{Puntaje y victoria}
+
+Dos contadores de 4 bits suman con POINT\_EN según el anotador registrado y se saturan en 9. La victoria se predice antes de sumar, para que la FSM vaya directo a FIN:
+\begin{equation}
+\begin{aligned}
+\mathrm{WIN\_NEXT} ={}& \mathrm{POINT\_EN}\\
+&\land\big[(\lnot\mathrm{SC}\land S_1\geq8)\lor(\mathrm{SC}\land S_2\geq8)\big],
+\end{aligned}
+\end{equation}
+donde SC es el anotador registrado (0 para J1 y 1 para J2) y $S_1$, $S_2$ son los puntajes.
+Como cada contador ya está en BCD, \sig{marcador_bcd} solo lleva los dos nibbles a los pines.
+
+\subsection{Imagen y transmisión serial}
+
+Para que la pantalla nunca muestre un cuadro a medias, \sig{captura_imagen} toma una instantánea de 13 bits ($Y_{P1}$, $Y_{P2}$, $X_B$, $Y_B$) al comienzo de cada cuadro, mediante el intercambio CAPTURE\_REQ/FRAME\_READY con el transmisor. El módulo \sig{imagen} arma de forma combinacional el byte de cada matriz (DATA\_A para las columnas 0--7 y DATA\_B para las 8--15) en la fila pedida.
+
+El \sig{transmisor_max7219} es una FSM que primero envía 14 instrucciones de configuración (Tabla~\ref{tab:init}) y luego refresca las ocho filas con tramas de 32 bits, 16 para cada controlador de la cascada~\cite{max7219}. Con $H=25$, el reloj serial tiene un semiperiodo de 500~ns. En F4 corregimos la orientación física de los módulos: el orden de los bits en \sig{imagen.v} y la dirección de fila en el transmisor, $\mathrm{ROW\_ADDR}=8-\mathrm{ROW\_IDX}$.
+
+\begin{table}[!t]
+\centering
+\caption{Instrucciones de configuración de cada controlador}
+\label{tab:init}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Palabra} & \textbf{Registro} & \textbf{Efecto} \\
+\midrule
+\texttt{0F00} & Display test & Prueba desactivada \\
+\texttt{0C00} & Shutdown & Apagado durante la configuración \\
+\texttt{0900} & Decode mode & Sin decodificación (matriz) \\
+\texttt{0B07} & Scan limit & Ocho filas \\
+\texttt{0A08} & Intensity & Nivel 8 de 15 (ciclo útil 17/32) \\
+\texttt{0100}--\texttt{0800} & Filas 1--8 & Pantalla en blanco \\
+\texttt{0C01} & Shutdown & Operación normal \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Supervisión de fallos}
+
+\sig{supervisor_fallos} revisa que el estado de la FSM, el puntaje y las posiciones estén siempre en rangos válidos. Si encuentra un valor imposible, por ejemplo un código de estado 110 o un puntaje mayor que 9, activa FAULT\_RECOVER y el sistema se reinicia por INIT\_GLOBAL.
+
+% ============================================================================
+% 6. Hardware
+% ============================================================================
+\section{Implementación en hardware (F4--F6)}
+\label{sec:hardware}
+
+\subsection{Componentes}
+
+La Tabla~\ref{tab:componentes} resume las entradas, los actuadores y los circuitos de interfaz del prototipo.
+
+\begin{table}[!t]
+\centering
+\caption{Entradas, actuadores e interfaz}
+\label{tab:componentes}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l c Y@{}}
+\toprule
+\textbf{Elemento} & \textbf{Cant.} & \textbf{Función} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Entradas}}\\
+Mando cableado & 2 & UP, DOWN y DETECT, activos en bajo \\
+Pulsador & 3 & START, PAUSE y RESET, activos en bajo \\
+Oscilador de la tarjeta & 1 & Reloj de 50~MHz \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Actuadores}}\\
+Módulo FC-16 $8\times8$ & 2 & Tablero de $8\times16$; controlador GC7219C, compatible con MAX7219~\cite{max7219} \\
+Display 5161AS & 2 & Un dígito por jugador, cátodo común~\cite{disp} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{Interfaz y alimentación}}\\
+SN74HCT245N & 2 & 3,3~V a 5~V: \#1 matrices, \#2 marcador~\cite{hct245} \\
+CD4511BE & 2 & Decodificador BCD a siete segmentos~\cite{cd4511} \\
+2N3904 & 2 & Habilitación del /OE de cada búfer \\
+Resistencias & 38 & 14 de 470~Ω, 22 de 10~kΩ (15 en la placa y 7 en los controles) y 2 de 100~kΩ \\
+Condensadores & 2 & 100~nF de desacople \\
+Fuente de 5~V / 3~A & 1 & Matrices, búferes, decodificadores y displays \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Asignación de pines}
+
+La Tabla~\ref{tab:pines} muestra la asignación final del archivo \sig{pong_top.qsf}. Todos los pines usan el estándar 3,3-V LVTTL. Las entradas terminadas en \_N son activas en bajo, con resistencia pull-up a 3,3~V y contacto hacia GND.
+
+\begin{table}[!t]
+\centering
+\caption{Asignación de pines de la FPGA}
+\label{tab:pines}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Señal} & \textbf{Pin} & \textbf{Función} \\
+\midrule
+CLK\_SYS & 23 & Reloj de 50~MHz \\
+J1\_UP\_N, J1\_DOWN\_N & 30, 32 & Mando del jugador 1 \\
+J1\_DETECT\_N & 34 & Mando 1 conectado \\
+J2\_UP\_N, J2\_DOWN\_N & 39, 38 & Mando del jugador 2 \\
+J2\_DETECT\_N & 42 & Mando 2 conectado \\
+START\_N & 43 & Inicio y saque \\
+RESET\_N & 44 & Reinicio \\
+PAUSE\_N & 46 & Pausa y reanudación \\
+DIN, CLK\_LED, LOAD & 28, 31, 33 & Serial a las matrices \\
+HCT\_EN & 49 & Habilitación de búferes \\
+SCORE\_J1\_BCD[3:0] & 105, 104, 103, 101 & Marcador J1 \\
+SCORE\_J2\_BCD[3:0] & 112, 111, 110, 106 & Marcador J2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+
+\subsection{Circuito externo}
+
+La Fig.~\ref{fig:conexiones} es el circuito a nivel de pines. Los GPIO de la tarjeta trabajan a 3,3~V~\cite{cyclone} y los periféricos a 5~V, así que usamos SN74HCT245N, cuyos umbrales de entrada TTL reconocen 3,3~V como uno lógico aun estando alimentados a 5~V~\cite{hct245}. Ambos búferes trabajan con DIR en alto (sentido A$\rightarrow$B) y desacople de 100~nF.
+
+El /OE de cada búfer tiene un pull-up de 10~kΩ a 5~V y un 2N3904 que lo lleva a cero cuando sube HCT\_EN, unos 50~ms después de que la FPGA queda configurada; la base tiene 10~kΩ en serie y 100~kΩ a tierra. Así, mientras la FPGA no está programada, los búferes quedan en alta impedancia. En las líneas DIN y CLK hay pull-down de 10~kΩ y en LOAD un pull-up de 10~kΩ, para que la matriz no reciba flancos espurios.
+
+Cada CD4511BE recibe los cuatro bits de un jugador y maneja un display 5161AS a través de siete resistencias de 470~Ω. Sus entradas tienen pull-down de 10~kΩ, de modo que sin señal el marcador muestra 0--0. Los ocho bits BCD salen por el conector LCD de la tarjeta, lo que obligó a configurar el pin~101 (nCEO) como E/S normal. Las tierras de la tarjeta y de la fuente de 5~V están unidas, y nunca entra 5~V a un pin de la FPGA.
+
+\begin{figure*}[!t]
+  \centering
+  \figura{fig_conexiones.pdf}{0.94\textwidth}
+  \caption{Circuito de conexiones del prototipo, con los números de pin de la FPGA y de cada integrado.}
+  \label{fig:conexiones}
+\end{figure*}
+
+La secuencia de operación que validamos es: primero la fuente de 5~V y después la tarjeta; para apagar, en el orden inverso. Es un procedimiento de uso y no reemplaza un circuito que verifique la presencia real de los 5~V.
+
+\subsection{Integración por etapas}
+
+\textbf{F4, pantalla.} Programamos un top que solo maneja las matrices (\sig{pong_f4_visual_top}) y comprobamos la inicialización y el cuadro inicial (Fig.~\ref{fig:f4}). Aquí aparecieron los únicos errores de la integración: la orientación física de los módulos FC-16 no coincidía con la supuesta en F2. Se corrigió en dos archivos y tres bancos de prueba se actualizaron con el nuevo orden de bits.
+
+\textbf{F5, mandos y juego.} Reemplazamos la interfaz RF por \sig{supervisor_cableado}, agregamos el pulsador PAUSE, el primer SN74HCT245N y la habilitación HCT\_EN, y cambiamos la pelota al movimiento diagonal porque en la matriz real el juego se veía lento.
+
+\textbf{F6, marcador.} Montamos el segundo búfer, los dos CD4511BE y los displays. Primero los probamos aislados, forzando valores BCD a mano, y después los conectamos a la FPGA con el top final \sig{pong_f6_integracion_top}.
+
+\begin{figure}[!t]
+  \centering
+  \figura{F4_Prueba_Visual_MAX7219.png}{\columnwidth}
+  \caption{Prueba de F4: paletas en las columnas 0 y 15 y pelota en su posición inicial, en las dos matrices en cascada.}
+  \label{fig:f4}
+\end{figure}
+
+\textbf{Controles en protoboard.} El profesor aprobó dejar los mandos y los pulsadores en protoboard. La Fig.~\ref{fig:esqcontroles} es su esquema: cada pulsador lleva su línea a GND y tiene una resistencia pull-up de 10~kΩ a 3,3~V, tomados de la tarjeta, así que en reposo la FPGA lee un uno y al presionar lee un cero. Las líneas DETECT de cada mando (pines 34 y 42) van a la tierra del mismo mando: mientras el mando está conectado la FPGA lee un cero, y si se suelta el cable DETECT el juego pasa a PAUSA\_RF. Montamos los siete pulsadores en tres secciones de protoboard (Fig.~\ref{fig:controles}): los dos del jugador~1 a la izquierda, START, PAUSE y RESET en el centro, y los dos del jugador~2 a la derecha. La Fig.~\ref{fig:montaje} muestra el conjunto.
+
+\begin{figure*}[!t]
+  \centering
+  \figura{esquematico_controles.jpg}{0.78\textwidth}
+  \caption{Esquema de los controles: pulsadores activos en bajo con pull-up de 10~kΩ a 3,3~V y líneas DETECT unidas a la tierra de cada mando.}
+  \label{fig:esqcontroles}
+\end{figure*}
+
+\begin{figure}[!t]
+  \centering
+  \figura{foto_controles_protoboard.jpg}{\columnwidth}
+  \caption{Controles en protoboard: jugador~1 (izquierda), START, PAUSE y RESET (centro) y jugador~2 (derecha), cada uno con su resistencia de pull-up.}
+  \label{fig:controles}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \figura{foto_montaje_final.jpg}{\columnwidth}
+  \caption{Montaje final: tarjeta A-C4E6E10 (izquierda), placa principal fabricada en F8 (derecha, aquí sin las matrices insertadas) y controles en protoboard (abajo).}
+  \label{fig:montaje}
+\end{figure}
+
+% ============================================================================
+% 7. Verificación
+% ============================================================================
+\section{Verificación}
+\label{sec:verificacion}
+
+Verificamos en tres niveles: simulación de cada módulo y del sistema, compilación y análisis de tiempos en Quartus, y pruebas físicas en la tarjeta.
+
+\subsection{Simulación}
+
+Para cada módulo escribimos un banco de prueba autoverificado que compara la salida contra un modelo independiente derivado de las tablas de F2. Cuando el espacio de entradas lo permitía, recorrimos todas las combinaciones válidas. Además hicimos cinco bancos de integración que reproducen situaciones de juego completas. Las simulaciones se hicieron en Questa y luego las repetimos con Icarus Verilog~\cite{icarus} sobre el RTL final de F6: pasan los 35 bancos de prueba, y en el repositorio vuelven a correr solos con cada cambio. La Tabla~\ref{tab:sim} resume los resultados.
+
+\begin{table*}[!t]
+\centering
+\caption{Resultados de simulación}
+\label{tab:sim}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l Y l@{}}
+\toprule
+\textbf{Banco de prueba} & \textbf{Qué se comprueba} & \textbf{Res.} \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{F3: módulos}}\\
+\sig{tb_colisiones} & 87\,823 casos de bordes, paletas, esquinas y goles & \pasa \\
+\sig{tb_imagen} & 65\,546 combinaciones de posiciones y filas & \pasa \\
+\sig{tb_control_juego} & 512 combinaciones de la FSM y 20 casos dirigidos & \pasa \\
+\sig{tb_supervisor_fallos} & 363 comprobaciones de estados inválidos & \pasa \\
+\sig{tb_marcador_bcd} & 356 comprobaciones de los buses BCD & \pasa \\
+\sig{tb_reset_seguro} & 47 comprobaciones de arranque y RESET & \pasa \\
+\sig{tb_puntaje}, \sig{tb_paletas} & Conteo y victoria (37), límites y comandos (14) & \pasa \\
+\sig{tb_captura_imagen}, \sig{tb_boton_evento} & Intercambio de captura (13), antirrebote y pulso único & \pasa \\
+\sig{tb_temporizadores}, \sig{tb_supervisor_rf} & Pulsos de 200/250~ms, vigencia del enlace & \pasa \\
+\sig{tb_transmisor_max7219} & Inicialización y tramas de 32 bits & \pasa \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{F3: integración}}\\
+\sig{tb_pong_integracion} & 9/9: arranque, saque y juego & \pasa \\
+\sig{tb_pong_goles_victoria} & 13/13: goles, puntaje y FIN & \pasa \\
+\sig{tb_pong_recuperacion_fallos} & 11/11: inyección de fallos & \pasa \\
+\sig{tb_pong_max7219_integrado} & 8/8: tramas hacia la cascada & \pasa \\
+\midrule
+\multicolumn{3}{@{}l}{\textit{F5: regresión con mandos cableados y pelota diagonal}}\\
+\sig{tb_pelota_diagonal_f5} & 12/12: inicio, avance a 45°, rebote y centrado & \pasa \\
+\sig{tb_pelota_goles_diagonal_f5} & 14/14: goles, marcador y saques con movimiento diagonal & \pasa \\
+\sig{tb_hct_reset_pausa_f5} & START, PAUSE y RESET; 28/28 instrucciones de inicio (14 + 14 tras RESET) & \pasa \\
+\sig{tb_supervisor_cableado_f5}, \sig{tb_paletas_cableadas_f5} & UP, DOWN y DETECT (10/10); paletas con mandos cableados (14/14) & \pasa \\
+\sig{tb_pausas_cableadas_f5}, \sig{tb_temporizadores_f5} & Pausa manual y por desconexión (18/18); temporizadores (13/13) & \pasa \\
+\sig{tb_colisiones_puntaje_f5}, \sig{tb_puntaje_reset_f5} & Colisiones y puntaje (12/12); puntaje y RESET (10/10) & \pasa \\
+\sig{tb_reset_seguro_f5}, \sig{tb_inicio_reset_integrado_f5} & Reset de arranque (10/10); inicio y RESET integrados (11/11) & \pasa \\
+\sig{tb_integracion_temporizada_f5} & 10/10: juego completo con los tiempos reales & \pasa \\
+\sig{tb_hct_filas_f5}, \sig{tb_hct_refresco_f5} & Tramas de 32 bits por fila (22/22) y refresco continuo (38/38) & \pasa \\
+\sig{tb_gc7219_temporizacion_f5} & 88/88 tramas con el modelo de tiempos del GC7219C & \pasa \\
+\sig{tb_hct_arranque_f5}, \sig{tb_hct_init_max7219_f5}, \sig{tb_hct_controles_cableados_f5} & Habilitación HCT\_EN al arrancar, fin de la inicialización y tramas con los mandos & \pasa \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Tres bancos de F3 (\sig{tb_imagen}, \sig{tb_transmisor_max7219} y \sig{tb_pong_max7219_integrado}) se actualizaron con el orden de bits corregido en F4. Otros cuatro (\sig{tb_pelota}, \sig{tb_pong_colisiones_rebotes} y dos de comienzos de F5) esperan el movimiento de la pelota anterior al diagonal; los conservamos aparte en el repositorio como registro, porque su comportamiento ya lo cubren las pruebas diagonales de F5. Las Figs.~\ref{fig:wpelota}--\ref{fig:wtx} muestran algunas formas de onda representativas de F3.
+
+\begin{figure}[!t]
+  \centering
+  \figura{F3_B2_pelota_wave_1.png}{\columnwidth}
+  \caption{Simulación de \sig{pelota}: avance con cada TICK\_BALL y rebote en un borde.}
+  \label{fig:wpelota}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \figura{F3_B5_control_juego_wave.png}{\columnwidth}
+  \caption{Simulación de \sig{control_juego}: recorrido ESPERA, JUEGO, PUNTO y pausas.}
+  \label{fig:wfsm}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \figura{F3_GOLES_VICTORIA_13_DE_13.png}{\columnwidth}
+  \caption{Integración: goles sucesivos hasta la victoria; cada gol produce un solo CAPTURE\_GOAL y un solo POINT\_EN.}
+  \label{fig:wgoles}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \figura{F3_B8_transmisor_max7219_wave.png}{\columnwidth}
+  \caption{Simulación del transmisor: DIN, CLK\_LED y LOAD durante una trama de 32 bits hacia la cascada.}
+  \label{fig:wtx}
+\end{figure}
+
+\subsection{Síntesis y análisis de tiempos}
+
+La Tabla~\ref{tab:quartus} recoge las compilaciones de referencia en Quartus Prime 25.1std Lite. En todas el diseño cumple con el reloj de 50~MHz (periodo de 20~ns) y no quedan rutas sin restricción. El archivo SDC define el reloj, excluye las entradas asíncronas hasta la primera etapa de sincronización y el RESET (que se afirma de forma asíncrona y se libera sincronizado), excluye HCT\_EN por ser una habilitación sin receptor con reloj e impone un presupuesto provisional de 40~ns a las salidas seriales y BCD. Los márgenes de la tabla dependen de esas suposiciones: no certifican los retardos reales del cableado ni de los búferes.
+
+\begin{table}[!t]
+\centering
+\caption{Compilaciones en Quartus (EP4CE10E22C8)}
+\label{tab:quartus}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}Y c c c c@{}}
+\toprule
+& \textbf{F3} & \textbf{F4} & \textbf{F5} & \textbf{F6} \\
+\midrule
+Elementos lógicos & 560 & 160 & 664 & 665 \\
+Registros & 276 & 80 & 379 & 379 \\
+Pines & 21 & 4 & 14 & 22 \\
+Errores / advertencias & 0 / -- & 0 / -- & 0 / 8 & 0 / 8 \\
+\textit{Setup slack} (lento, 85~°C) & -- & $+11{,}112$ & $+8{,}546$ & $+6{,}686$ \\
+\textit{Hold slack} (rápido, 0~°C) & -- & $+0{,}401$ & $+0{,}186$ & $+0{,}186$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+El diseño final ocupa solo el 6~\% de los 10\,320 elementos lógicos y no usa memoria, multiplicadores ni PLL. La síntesis reporta 660 elementos y el ajuste (\textit{fitter}) 665, porque al ubicar el diseño Quartus agrega algunos elementos de enrutamiento; la cifra de la tabla es la del ajuste. Entre F5 y F6 los recursos casi no cambian: el marcador solo agrega ocho salidas, ya que los contadores BCD existían desde F3. La Tabla~\ref{tab:sta} detalla los márgenes de F6 en los tres modelos de temporización. De las ocho advertencias, la única relacionada con el hardware es la que recuerda los requisitos de compatibilidad de las entradas LVTTL de 3,3~V; la dejamos documentada para revisarla con la nota AN~447~\cite{an447}. Los reportes completos de F3 a F6 están en el repositorio~\cite{repo}.
+
+\begin{table}[!t]
+\centering
+\caption{Márgenes de tiempo de F6 para CLK\_SYS (ns)}
+\label{tab:sta}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}Y c c@{}}
+\toprule
+\textbf{Modelo} & \textbf{\textit{Setup}} & \textbf{\textit{Hold}} \\
+\midrule
+Lento, 1200~mV, 85~°C & $+6{,}686$ & $+0{,}452$ \\
+Lento, 1200~mV, 0~°C & $+7{,}570$ & $+0{,}400$ \\
+Rápido, 1200~mV, 0~°C & $+14{,}237$ & $+0{,}186$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Con el peor margen de \textit{setup}, la frecuencia máxima estimada es $1/(20-6{,}686)~\text{ns}\approx75$~MHz, unos 25~MHz por encima del reloj de la tarjeta.
+
+\subsection{Pruebas en la tarjeta}
+
+La Tabla~\ref{tab:fisicas} resume las pruebas físicas, ordenadas por fase, y la Tabla~\ref{tab:videos} relaciona cada video de evidencia con los requisitos que demuestra.
+
+\begin{table*}[!t]
+\centering
+\caption{Pruebas físicas sobre la tarjeta}
+\label{tab:fisicas}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l l Y l l@{}}
+\toprule
+\textbf{Fase} & \textbf{Prueba} & \textbf{Resultado observado} & \textbf{Req.} & \textbf{Estado} \\
+\midrule
+F4 & Inicialización y cuadro inicial & Programación JTAG al 100~\%; paletas y pelota en la posición esperada tras corregir la orientación & R07, R08 & \obs \\
+F4 & Estabilidad de la imagen & Imagen estable durante 30~s; 5,23~V en la alimentación de las matrices & R08, R10 & \obs \\
+F5 & Paletas independientes & Cada mando mueve solo su paleta y se respetan los límites & R01, R02 & \obs \\
+F5 & START, PAUSE y RESET & Arranque, pausa y reanudación sin pérdida de datos, y reinicio & R06, R11 & \obs \\
+F5 & Movimiento y rebotes & Movimiento diagonal, rebotes en bordes y paletas, goles y nuevos saques & R03--R05 & \obs \\
+F5 & Desconexión de un mando & El juego se detiene y no sigue mientras el mando está desconectado & R09, R12 & \obs \\
+F6 & Marcador aislado & Con BCD forzado, los displays muestran 0--0 y 1--0 & R06 & \obs \\
+F6 & Búferes deshabilitados & Con HCT\_EN en bajo, los pull-down de los CD4511BE dejan 0--0 & R10 & \obs \\
+F6 & Tensiones & 5,22~V en VCC del búfer~\#2 y 3,27~V en HCT\_EN con la FPGA configurada & R10 & Medido \\
+F6 & Sistema completo & Matrices, dos búferes, dos decodificadores y dos displays funcionando a la vez & R07, R08 & \obs \\
+F6 & Partida completa & El puntaje sube en ambos jugadores hasta 9--6 y el juego se detiene en FIN & R05, R06 & \obs \\
+F6 & RESET y nueva partida & RESET devuelve el marcador a 0--0 y START inicia otra partida & R06 & \obs \\
+F6 & Encendido y apagado & Con 5~V presentes y la FPGA sin configurar aparecen patrones transitorios en las matrices & R10 & \parcial \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{table*}[!t]
+\centering
+\caption{Videos de evidencia}
+\label{tab:videos}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l l Y l l@{}}
+\toprule
+\textbf{Video} & \textbf{Prueba} & \textbf{Qué se observa} & \textbf{Req.} & \textbf{Enlace} \\
+\midrule
+V01 & Encendido y programación & 5~V primero, programación al 100~\%, cuadro inicial y marcador 0--0 & R08 & \pendiente{enlace} \\
+V02 & Arranque & La pelota espera en el centro hasta START & R06 & \pendiente{enlace} \\
+V03 & Paletas & Cada mando mueve solo su paleta, sin salirse del tablero & R01, R02 & \pendiente{enlace} \\
+V04 & Pelota y bordes & Movimiento diagonal y rebotes arriba y abajo & R03, R04 & \pendiente{enlace} \\
+V05 & Rebote en paleta & Rebote en el centro y en el extremo de la paleta & R04 & \pendiente{enlace} \\
+V06 & Gol & El marcador sube exactamente 1 y la pelota vuelve al centro & R05 & \pendiente{enlace} \\
+V07 & Pausa & PAUSE congela y reanuda con la misma posición y el mismo puntaje & R11 & \pendiente{enlace} \\
+V08 & Desconexión de mando & Al quitar DETECT el juego se detiene; al reconectar y presionar START, sigue & R09, R12 & \pendiente{enlace} \\
+V09 & Partida completa & Juego hasta 9; el sistema queda en FIN & R06 & \pendiente{enlace} \\
+V10 & RESET & Desde FIN y a mitad de partida, vuelve a 0--0 & R06 & \pendiente{enlace} \\
+V11 & Demostración & De uno a dos minutos de juego normal & --- & \pendiente{enlace} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\begin{figure}[!t]
+  \centering
+  \figura{foto_partida.jpg}{\columnwidth}
+  \caption{Partida en curso: matrices y marcador con un puntaje distinto para cada jugador. \pendiente{Agregar la foto con el nombre foto\_partida.jpg.}}
+  \label{fig:partida}
+\end{figure}
+
+% ============================================================================
+% 8. PCB
+% ============================================================================
+\section{Placa en KiCad (F8)}
+\label{sec:pcb}
+
+Para dejar el prototipo en una forma más robusta que la protoboard, en F8 pasamos a KiCad~\cite{kicad} el circuito de la Fig.~\ref{fig:conexiones}. Como el profesor aprobó dejar los controles en protoboard, diseñamos una sola placa, la principal, que reúne:
+\begin{itemize}
+\item los dos SN74HCT245N (U1 para las matrices y U2 para el marcador), cada uno con su condensador de 100~nF (C1, C2) y su 2N3904 de habilitación (Q1, Q2) con las resistencias de base (R3, R4), de pull-down (R5, R6) y de pull-up del /OE (R1, R2);
+\item las resistencias de reposo de las líneas seriales (R7 y R8 a GND en DIN y CLK, R9 a 5~V en CS) y los pull-down de 10~kΩ de las ocho entradas BCD (R24--R31);
+\item los dos CD4511BE (U3, U4), sus catorce resistencias de 470~Ω (R10--R23) y los dos displays 5161AS (AFF1, AFF2);
+\item las huellas de los dos módulos FC-16 (MOD1, MOD2) con espadines hembra en sus conectores IN y OUT, de modo que las matrices se insertan y se retiran sin soldar, y la salida OUT de MOD1 queda unida a la entrada IN de MOD2 por la placa;
+\item tres conectores: J3 para los 5~V de la fuente externa, J2 (cinco pines) para DIN, CLK\_LED, LOAD, HCT\_EN y la tierra común, y J1 (ocho pines) para los bits BCD que salen por el conector LCD de la tarjeta (pines 101, 103--106 y 110--112).
+\end{itemize}
+El esquema de la Fig.~\ref{fig:esquematico} conserva exactamente las conexiones validadas en protoboard en F6: mismos pines de la FPGA, mismos valores y la misma asignación de segmentos a--g entre los CD4511BE y los displays.
+
+La placa es de una sola capa de cobre, por la cara de soldadura, con máscara verde y serigrafía de referencias por la cara de componentes; mide aproximadamente 9~cm de lado. Las pistas que no se pudieron trazar en una sola capa sin cruzarse quedaron como conexiones pendientes en el diseño (líneas finas en la Fig.~\ref{fig:layout}), y en la placa fabricada las completamos con cuatro puentes de cable aislado por la cara de soldadura (Fig.~\ref{fig:pcbfoto}, derecha). Los integrados van sobre bases, lo que permite cambiarlos y probar la placa por partes.
+
+Como J1 no tiene tierra, la referencia entre la FPGA y la placa depende solo del pin~5 de J2, y por eso ese cable debe quedar bien asegurado. \pendiente{Agregar el resultado de la prueba del juego completo con la placa principal.}
+
+\begin{figure}[!t]
+  \centering
+  \figura{esquematico_pcb.jpg}{\columnwidth}
+  \caption{Esquema en KiCad de la placa principal: búferes con su habilitación, decodificadores, displays, huellas de las matrices y conectores J1--J3.}
+  \label{fig:esquematico}
+\end{figure}
+
+\begin{figure*}[!t]
+  \centering
+  \figura{layout_pcb_kicad.jpg}{0.32\textwidth}\hfill
+  \figura{render_pcb_superior.jpg}{0.32\textwidth}\hfill
+  \figura{render_pcb_inferior.jpg}{0.32\textwidth}
+  \caption{Diseño de la placa en KiCad: trazado de pistas en la capa inferior (izquierda; las líneas finas son las conexiones que se completaron con puentes de cable) y vistas 3D de la cara de componentes (centro) y de la cara de soldadura (derecha).}
+  \label{fig:layout}
+\end{figure*}
+
+\begin{figure*}[!t]
+  \centering
+  \figura{foto_pcb_componentes.jpg}{0.42\textwidth}\hspace{0.04\textwidth}
+  \figura{foto_pcb_soldaduras.jpg}{0.42\textwidth}
+  \caption{Placa fabricada y soldada: cara de componentes con los integrados en sus bases, los displays y los espadines hembra de las dos matrices (izquierda), y cara de soldadura con los cuatro puentes de cable (derecha).}
+  \label{fig:pcbfoto}
+\end{figure*}
+
+% ============================================================================
+% 9. Cumplimiento
+% ============================================================================
+\section{Cumplimiento de objetivos y requisitos}
+\label{sec:cumplimiento}
+
+La Tabla~\ref{tab:cumplimiento} resume el estado de los requisitos. Nueve de los doce están cumplidos. R09 y R12 quedan parciales porque se verificaron con la señal DETECT de los mandos cableados y no con un enlace inalámbrico real. R10 queda parcial porque medimos tensiones puntuales, pero no hicimos una revisión eléctrica completa, persiste la advertencia sobre las entradas de 3,3~V y aparecen transitorios cuando hay 5~V y la FPGA aún no está configurada.
+
+\begin{table}[!t]
+\centering
+\caption{Estado final de los requisitos}
+\label{tab:cumplimiento}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l Y l@{}}
+\toprule
+\textbf{Req.} & \textbf{Evidencia} & \textbf{Estado} \\
+\midrule
+R01 & \sig{tb_paletas}, V03 & \ok \\
+R02 & \sig{tb_paletas}, V03 & \ok \\
+R03 & \sig{tb_pelota_diagonal_f5}, V04 & \ok \\
+R04 & \sig{tb_colisiones}, \sig{tb_pelota_goles_diagonal_f5}, V05 & \ok \\
+R05 & Integración 13/13, V06 & \ok \\
+R06 & \sig{tb_puntaje}, partida 9--6, V09, V10 & \ok \\
+R07 & \sig{tb_imagen}, Fig.~\ref{fig:f4} & \ok \\
+R08 & 28/28 instrucciones, integración 8/8, V01 & \ok \\
+R09 & \sig{supervisor_cableado}, V08 (sin RF) & \parcial \\
+R10 & Mediciones de 5,22~V y 3,27~V & \parcial \\
+R11 & \sig{tb_hct_reset_pausa_f5}, V07 & \ok \\
+R12 & \sig{tb_control_juego}, V08 (sin RF) & \parcial \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+En cuanto a los objetivos de la propuesta, los objetivos 1, 2, 3, 4, 6, 7 y 8 están cumplidos. El objetivo~5 se cumplió de forma parcial: los dos jugadores controlan sus paletas de manera independiente y el sistema reacciona a la pérdida de un mando, pero sin enlace inalámbrico.
+
+\subsection{Cambios frente a la propuesta}
+
+\begin{itemize}
+\item \textbf{Mandos cableados en lugar de inalámbricos.} No integramos los módulos RF. Como la arquitectura aislaba el enlace en su propio módulo, el cambio se limitó a la entrada: la FSM y el estado PAUSA\_RF se mantuvieron, ahora activados por la desconexión de un mando.
+\item \textbf{Pulsador PAUSE.} Agregamos un tercer pulsador y el estado PAUSA\_MANUAL (revisión~1.2 de F0).
+\item \textbf{Movimiento diagonal.} La pelota avanza en X e Y en cada pulso, en lugar de avanzar en Y a la mitad de la velocidad, porque en la matriz real el juego se veía lento.
+\item \textbf{Adaptación de niveles.} Usamos dos SN74HCT245N habilitados por transistor, porque había que adaptar once líneas y queríamos que las salidas quedaran en alta impedancia mientras la FPGA no está configurada.
+\item \textbf{Orientación de las matrices.} Corregimos en F4 el orden de bits y de filas para que coincidiera con los módulos FC-16 reales.
+\end{itemize}
+
+\subsection{Limitaciones y trabajo futuro}
+
+\begin{itemize}
+\item \textbf{Enlace inalámbrico.} Bastaría conectar receptores que entreguen UP, DOWN y una señal de enlace activo en lugar de DETECT; la lógica de supervisión y la FSM ya lo contemplan.
+\item \textbf{Arranque.} La protección depende del orden de encendido. Una mejora sería supervisar la presencia de los 5~V antes de habilitar los búferes.
+\item \textbf{Configuración autónoma.} El diseño se carga por JTAG y se pierde al apagar; falta grabarlo en la memoria de configuración de la tarjeta.
+\item \textbf{Restricciones de E/S.} El presupuesto de 40~ns de las salidas es provisional; falta cerrarlo con los retardos reales de los búferes y del cableado.
+\item \textbf{Segunda versión de la placa.} Una revisión de la PCB debería trazar en dos capas las cuatro conexiones que hoy son puentes de cable, agregar un condensador de 100~nF junto a cada CD4511BE y uno electrolítico en la entrada de 5~V, y llevar una tierra también por J1.
+\end{itemize}
+
+% ============================================================================
+% 10. IA
+% ============================================================================
+\section{Uso de inteligencia artificial}
+
+Usamos herramientas de IA en dos partes del proyecto y queremos dejarlo claro:
+\begin{itemize}
+\item \textbf{Durante las fases F0 a F8} usamos asistentes de IA conversacionales para depurar y revisar: buscar la causa de errores de compilación y de simulación, revisar la redacción de las memorias y comprobar que tablas, ecuaciones y código fueran coherentes entre sí. Las especificaciones, el diseño lógico, el código Verilog, los bancos de prueba, el montaje, las mediciones y las pruebas en la tarjeta los hicimos nosotros.
+\item \textbf{Repositorio e informes.} Con Claude (Anthropic) organizamos el repositorio a partir de las entregas de cada fase, reprodujimos las simulaciones con Icarus Verilog, dibujamos las figuras de los diagramas a partir de nuestras tablas de conexión y de la FSM, revisamos el esquema de la placa contra las conexiones de F6 y preparamos los borradores de los informes, que después revisamos.
+\end{itemize}
+En todos los casos revisamos el resultado contra nuestras memorias y contra el código. Los resultados numéricos de este informe salen de nuestros reportes de simulación y de Quartus, no de la herramienta.
+
+% ============================================================================
+% 11. Conclusiones
+% ============================================================================
+\section{Conclusiones}
+
+\begin{itemize}
+\item Logramos un Pong completo para dos jugadores hecho solo con lógica digital. El juego corre en la FPGA, se ve en las dos matrices y el marcador funciona en hardware: jugamos una partida real hasta 9--6, con victoria, RESET y nueva partida.
+\item Hacer primero el diseño formal y escribir los bancos de prueba contra esas mismas tablas valió la pena. Los errores que aparecieron en el hardware no fueron de lógica, sino de supuestos físicos, como la orientación de las matrices o el pin nCEO.
+\item Trabajar con un solo reloj y pulsos de habilitación simplificó el análisis de tiempos: el diseño final cumple con 50~MHz con márgenes positivos en todos los modelos y ocupa solo el 6~\% de la FPGA.
+\item Integrar por partes, y probar el marcador aislado antes de conectarlo, nos permitió encontrar fallas sin poner en riesgo la tarjeta.
+\item Pasar el circuito a una placa impresa en F8 fue directo porque el esquema ya estaba validado en protoboard; la única dificultad fue trazarlo en una sola capa, que resolvimos con cuatro puentes de cable.
+\item La adaptación de 3,3~V a 5~V con búferes HCT habilitados por transistor resolvió la interfaz, pero no elimina los transitorios cuando la FPGA no está configurada; para eso habría que supervisar la alimentación.
+\item La deuda principal frente a la propuesta es el enlace inalámbrico. Como la arquitectura lo dejó aislado en un módulo, incorporarlo no exige cambiar el núcleo del juego.
+\end{itemize}
+
+% ============================================================================
+% Referencias
+% ============================================================================
+\begin{thebibliography}{99}
+\bibitem{propuesta} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Diseño e implementación de un videojuego Pong mediante electrónica digital con FPGA y controles inalámbricos,'' propuesta corregida, Electrónica Digital~I, Univ. Nacional de Colombia, 2026.
+\bibitem{guia} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Guía metodológica de diseño, simulación y validación del videojuego Pong con FPGA,'' documento del proyecto, 2026.
+\bibitem{f0} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Fase 0: Especificación funcional del videojuego Pong,'' rev.~1.2, nov. 2026.
+\bibitem{f1} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Fase 1: Arquitectura por bloques del videojuego Pong,'' rev.~1.1, nov. 2026.
+\bibitem{f2} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Fase 2: Diseño lógico formal del videojuego Pong,'' rev.~1.2, nov. 2026.
+\bibitem{f3} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Fase 3: Implementación RTL y verificación funcional del videojuego Pong,'' rev.~1.0, nov. 2026.
+\bibitem{f5} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Fase 5: Integración de controles cableados y validación física del videojuego Pong con FPGA,'' memoria técnica, rev.~1.0, 14 nov. 2026.
+\bibitem{f6} J. D. Ortiz Muñoz, D. E. Chivata Arias y D. F. Castro González, ``Fase 6: Integración, síntesis y montaje del videojuego Pong con marcadores externos de siete segmentos en FPGA,'' memoria técnica, rev.~1.0, 14 nov. 2026.
+\bibitem{repo} Repositorio del proyecto ``pong-fpga-digital1'' (memorias F0--F8, código, pruebas y hardware). [En línea]. Disponible: \url{https://github.com/dcastrogon-coder/pong-fpga-digital1}
+\bibitem{mano} M. M. Mano y M. D. Ciletti, \textit{Digital Design}, 5.ª ed. Upper Saddle River, NJ, EE.~UU.: Pearson, 2013.
+\bibitem{brown} S. Brown y Z. Vranesic, \textit{Fundamentals of Digital Logic with Verilog Design}, 3.ª ed. Nueva York, NY, EE.~UU.: McGraw-Hill, 2014.
+\bibitem{tocci} R. J. Tocci, N. S. Widmer y G. L. Moss, \textit{Digital Systems: Principles and Applications}, 11.ª ed. Upper Saddle River, NJ, EE.~UU.: Pearson, 2011.
+\bibitem{cyclone} Intel/Altera, \textit{Cyclone IV Device Handbook}, vol.~1, 2016.
+\bibitem{an447} Intel/Altera, ``AN 447: Interfacing Cyclone III and Cyclone IV Devices with 3.3/3.0/2.5-V LVTTL/LVCMOS I/O Systems,'' nota de aplicación.
+\bibitem{max7219} Analog Devices/Maxim Integrated, ``MAX7219/MAX7221: Serially interfaced, 8-digit LED display drivers,'' hoja de datos, rev.~6, 2021.
+\bibitem{hct245} Texas Instruments, ``SN74HCT245: Octal bus transceivers with 3-state outputs,'' hoja de datos. [En línea]. Disponible: \url{https://www.ti.com/product/SN74HCT245}
+\bibitem{cd4511} Texas Instruments, ``CD4511B CMOS BCD-to-7-segment latch decoder drivers,'' hoja de datos SCHS072B. [En línea]. Disponible: \url{https://www.ti.com/lit/ds/symlink/cd4511b.pdf}
+\bibitem{disp} Shanghai Toplite Technology, ``TOP-CC-5161AS: Seven-segment display,'' hoja de datos, 2014.
+\bibitem{icarus} S. Williams, ``Icarus Verilog.'' [En línea]. Disponible: \url{https://steveicarus.github.io/iverilog/}
+\bibitem{kicad} KiCad EDA, ``KiCad: Schematic capture and PCB design software.'' [En línea]. Disponible: \url{https://www.kicad.org/}
+\end{thebibliography}
+
+\end{document}

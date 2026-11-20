@@ -1,0 +1,15 @@
+PASS: inicializacion MAX7219 14/14 (epoca 0)
+PASS: imagen inicial y estado ESPERA
+PASS: START y movimiento real de pelota
+PASS: rebote corto de PAUSE rechazado
+PASS: PAUSE congela pelota/paletas, mantiene refresco
+PASS: segunda pulsacion de PAUSE reanuda movimiento
+PASS: RESET activa INIT_GLOBAL y reinicia el monitor
+PASS: RESET recupera ESPERA, paletas, pelota y marcador
+PASS: inicializacion MAX7219 14/14 (epoca 1)
+PASS: RESET repite los 14 comandos MAX7219
+PASS: imagen inicial restaurada y refrescada
+PASS: 28/28 comandos de inicio (14 + 14)
+PASS: todas las tramas comprobadas con 32 bits
+PASS: PAUSE, reanudacion y RESET correctos
+tb/tb_hct_reset_pausa_f5.v:291: $finish called at 2467410000 (1ps)

@@ -9,7 +9,7 @@ Universidad Nacional de Colombia, sede Bogotá · Departamento de Ingeniería El
 | David Eduardo Chivata Arias | dchivata@unal.edu.co |
 | Daniel Felipe Castro González | dcastrogon@unal.edu.co |
 
-![Prueba de F4: las dos matrices con las paletas y la pelota](fases/F4_interfaz_visual/F4_Prueba_Visual_MAX7219.png)
+![Montaje final: tarjeta, placa principal y controles](fases/F8_pcb_kicad/foto_montaje_final.jpg)
 
 ## De qué se trata
 
@@ -20,6 +20,7 @@ Hicimos un Pong para dos jugadores **solo con lógica digital** (sin Arduino ni 
 * START, PAUSE y RESET van en pulsadores.
 * El puntaje sale en BCD hacia **dos CD4511BE** y **dos displays 5161AS**. Gana el primero que llega a 9.
 * Todas las salidas pasan de 3,3 V a 5 V por **dos SN74HCT245N**, que se habilitan con dos 2N3904 cuando la FPGA ya está configurada.
+* Los búferes, el marcador y los conectores de las matrices van en una **placa impresa** que diseñamos en KiCad; los controles quedaron en protoboard.
 
 ![Arquitectura del sistema](informes/figuras/fig_sistema.png)
 
@@ -28,9 +29,10 @@ Hicimos un Pong para dos jugadores **solo con lógica digital** (sin Arduino ni 
 | Informe | Archivo |
 |---------|---------|
 | Informe de avance | [`informes/avance/informe_avance.pdf`](informes/avance/informe_avance.pdf) |
-| Informe del Desafío (final) | [`informes/desafio/informe_desafio.pdf`](informes/desafio/informe_desafio.pdf) |
+| Informe del Desafío | [`informes/desafio/informe_desafio.pdf`](informes/desafio/informe_desafio.pdf) |
+| **Informe final completo** (F0–F8) | [`informes/final/informe_final.pdf`](informes/final/informe_final.pdf) |
 
-Los dos siguen la estructura que pidió el profesor. Las figuras y cómo volver a compilarlos están en [`informes/`](informes/).
+Siguen la estructura que pidió el profesor. Las figuras y cómo volver a compilarlos están en [`informes/`](informes/).
 
 ## Estado por fase
 
@@ -43,10 +45,10 @@ Desarrollamos el proyecto con la ruta de nuestra [guía metodológica](documento
 | [F2](fases/F2_diseno_logico/) | Diseño lógico formal: tablas, ecuaciones y FSM | Terminada |
 | [F3](fases/F3_rtl_simulacion/) | Verilog y simulación: 19 bancos de prueba, 49/49 comprobaciones de integración | Terminada |
 | [F4](fases/F4_interfaz_visual/) | Las dos matrices funcionando en la tarjeta | Terminada |
-| [F5](fases/F5_controles_cableados/) | Mandos cableados, movimiento diagonal, juego completo en la tarjeta | Terminada (nos falta subir la memoria y el código) |
+| [F5](fases/F5_controles_cableados/) | Mandos cableados, movimiento diagonal, juego completo en la tarjeta | Terminada |
 | [F6](fases/F6_integracion_montaje/) | Marcador de 7 segmentos, montaje completo; partida real hasta 9–6 | Terminada |
 | [F7](fases/F7_informe_protoboard/) | Informe del funcionamiento en protoboard | Terminada |
-| F8 | Esquemas y placas en KiCad | En camino |
+| [F8](fases/F8_pcb_kicad/) | Placa principal en KiCad, fabricada y soldada | Terminada |
 
 En el camino cambiamos algunas cosas de la propuesta (controles cableados en lugar de RF, pelota en diagonal, orientación de las matrices y adaptador de niveles). Las explicamos en [`fases/README.md`](fases/README.md).
 
@@ -55,14 +57,14 @@ En el camino cambiamos algunas cosas de la propuesta (controles cableados en lug
 ```
 pong-fpga-digital1/
 ├── documentos_base/   Propuesta corregida y guía metodológica
-├── fases/             F0 a F7: documento de cada fase y su evidencia
+├── fases/             F0 a F8: documento de cada fase y su evidencia
 ├── fpga/
-│   ├── rtl/           Módulos Verilog (núcleo F3 con las correcciones de F4)
-│   ├── tb/            19 bancos de prueba autoverificados
+│   ├── rtl/           Módulos Verilog (diseño final de F6)
+│   ├── tb/            35 bancos de prueba autoverificados
 │   ├── sim/           Script para correr todas las pruebas y sus registros
 │   └── *.qpf/.qsf/.sdc  Proyecto de Quartus
 ├── hardware/          Lista de componentes, conexiones pin a pin, encendido y apagado
-├── informes/          Informe de avance, informe del Desafío y figuras (LaTeX + PDF)
+├── informes/          Informe de avance, del Desafío y final, con sus figuras (LaTeX + PDF)
 └── caja/              Caja para corte láser (DXF y scripts)
 ```
 
@@ -73,18 +75,18 @@ sudo apt install iverilog      # Ubuntu o WSL
 bash fpga/sim/correr_pruebas.sh
 ```
 
-Deben pasar los 19 bancos de prueba. GitHub corre lo mismo cada vez que subimos algo (pestaña *Actions*). Más detalle en [`fpga/`](fpga/).
+Deben pasar los 35 bancos de prueba. GitHub corre lo mismo cada vez que subimos algo (pestaña *Actions*). Más detalle en [`fpga/`](fpga/).
 
 ## Cómo compilar y programar
 
 1. Abrir `fpga/pong_f3.qpf` en Quartus Prime.
-2. *Processing → Start Compilation*.
+2. *Processing → Start Compilation*. Debe terminar con 0 errores (665 elementos lógicos, 22 pines).
 3. Encender **primero** la fuente de 5 V y **después** la tarjeta.
 4. *Tools → Programmer*, USB-Blaster en JTAG, cargar `output_files/pong_top.sof` y *Start*.
 
 Ojo: la configuración por JTAG se borra al apagar la tarjeta, así que toca programarla en cada encendido. Las conexiones y la secuencia completa de encendido y apagado las dejamos en [`hardware/`](hardware/).
 
-Por ahora el top que está aquí es el de la prueba de F4 (solo pantalla). Todavía nos falta subir el código de F5 y F6 (`pong_f5_core.v`, `pong_f6_integracion_top.v` y los módulos de los mandos cableados) para poder compilar el juego completo desde el repositorio.
+El proyecto ya tiene como top `pong_f6_integracion_top`, es decir, el juego completo con mandos y marcador.
 
 ## Cómo trabajamos en el repositorio
 

@@ -1,0 +1,14 @@
+PASS prueba 1: Arranque correcto
+PASS prueba 2: Ambos controles detectados
+PASS prueba 3: Partida iniciada
+PASS prueba 4: Comandos cableados correctos
+PASS prueba 5: Paletas llegan a sus limites
+PASS prueba 6: Desconexion detiene el juego
+PASS prueba 7: Posiciones congeladas durante pausa
+PASS prueba 8: Reconexion no reanuda automaticamente
+PASS prueba 9: START reanuda la partida
+PASS prueba 10: RESET restaura el estado inicial
+----------------------------
+INTEGRACION TEMPORIZADA F5: 10/10 PASS
+----------------------------
+tb/tb_integracion_temporizada_f5.v:252: $finish called at 7232000 (1ps)

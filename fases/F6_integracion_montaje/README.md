@@ -8,7 +8,8 @@ En esta fase agregamos el marcador físico: los dos buses BCD salen por el conec
 |------------------------------------------------|-----------|
 | Top | `pong_f6_integracion_top` |
 | Errores / advertencias | 0 / 8 |
-| Celdas lógicas | 660 (de 10 320) |
+| Elementos lógicos | 660 en síntesis, 665 tras el ajuste (de 10 320) |
+| Registros | 379 |
 | Entradas / salidas | 10 / 12 |
 | Peor *slack* de setup (lento, 85 °C) | +6,686 ns |
 | Peor *slack* de hold (rápido, 0 °C) | +0,186 ns |
@@ -23,3 +24,5 @@ En esta fase agregamos el marcador físico: los dos buses BCD salen por el conec
 | Partida completa | Marcador real hasta **9–6** |
 | Victoria | El juego se detiene al llegar a 9 |
 | RESET y nueva partida | Vuelve a 0–0 y START permite jugar otra vez |
+
+Los resúmenes de Quartus de esta compilación (síntesis, ajuste, tiempos y pines) están en [`quartus_reportes/`](quartus_reportes/).

@@ -1,0 +1,18 @@
+PASS prueba 1: Pelota inicializada
+PASS prueba 2: Marcadores inicializados
+PASS prueba 3: Inicio de partida
+PASS prueba 4: Pelota detenida sin tick
+PASS prueba 5: Diagonal 45 grados hacia derecha
+PASS prueba 6: Deteccion real de gol J1
+PASS prueba 7: Captura del primer gol
+PASS prueba 8: Punto J1 y saque hacia izquierda
+PASS prueba 9: Segunda ronda iniciada
+PASS prueba 10: Diagonal 45 grados hacia izquierda
+PASS prueba 11: Deteccion real de gol J2
+PASS prueba 12: Captura del segundo gol
+PASS prueba 13: Punto J2 y saque hacia derecha
+PASS prueba 14: Marcadores conservados
+----------------------------
+PASS: pelota + colisiones + goles diagonales F5; 14/14 pruebas correctas
+----------------------------
+tb/tb_pelota_goles_diagonal_f5.v:334: $finish called at 871000 (1ps)

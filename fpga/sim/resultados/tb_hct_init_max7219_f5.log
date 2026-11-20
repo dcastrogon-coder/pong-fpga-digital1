@@ -1,0 +1,17 @@
+PASS: comando 1 = 0f00
+PASS: comando 2 = 0c00
+PASS: comando 3 = 0900
+PASS: comando 4 = 0b07
+PASS: comando 5 = 0a08
+PASS: comando 6 = 0100
+PASS: comando 7 = 0200
+PASS: comando 8 = 0300
+PASS: comando 9 = 0400
+PASS: comando 10 = 0500
+PASS: comando 11 = 0600
+PASS: comando 12 = 0700
+PASS: comando 13 = 0800
+PASS: comando 14 = 0c01
+PASS: 14/14 comandos MAX7219 correctos
+PASS: INIT_MODE desactivado correctamente
+tb/tb_hct_init_max7219_f5.v:102: $finish called at 480130000 (1ps)

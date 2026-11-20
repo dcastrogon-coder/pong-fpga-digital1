@@ -1,0 +1,16 @@
+PASS prueba 1
+PASS prueba 2
+PASS prueba 3
+PASS prueba 4
+PASS prueba 5
+PASS prueba 6
+PASS prueba 7
+PASS prueba 8
+PASS prueba 9
+PASS prueba 10
+PASS prueba 11
+PASS prueba 12
+----------------------------
+COLISIONES Y PUNTAJE F5: 12/12 PASS
+----------------------------
+tb/tb_colisiones_puntaje_f5.v:227: $finish called at 292000 (1ps)

@@ -1,0 +1,2 @@
+PASS: arranque y habilitacion HCT correctos
+tb/tb_hct_arranque_f5.v:58: $finish called at 231000 (1ps)

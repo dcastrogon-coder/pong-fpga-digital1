@@ -15,10 +15,10 @@ Cada fase tiene su carpeta con el documento que entregamos y la evidencia que la
 | [F2](F2_diseno_logico/) | Diseño lógico formal, rev. 1.2 | 2 nov 2026 | PC1 | Tablas de verdad y de transición, ecuaciones, FSM del juego y del transmisor |
 | [F3](F3_rtl_simulacion/) | RTL en Verilog y simulación modular | 3 nov 2026 | PC2–PC3 | 15 archivos RTL, 19 testbenches, 49/49 comprobaciones de integración, síntesis sin errores |
 | [F4](F4_interfaz_visual/) | Interfaz visual con las dos matrices MAX7219 | 7 nov 2026 | PC4 | Compilación completa, programación por JTAG, foto de la matriz |
-| [F5](F5_controles_cableados/) | Controles cableados y validación física del juego | 14 nov 2026 | PC5 | Juego completo en la tarjeta (nos falta subir el documento y el código) |
+| [F5](F5_controles_cableados/) | Controles cableados y validación física del juego | 14 nov 2026 | PC5 | Juego completo en la tarjeta, pelota diagonal, 18 bancos de prueba vigentes (12/12, 14/14, 28/28) |
 | [F6](F6_integracion_montaje/) | Integración del marcador de 7 segmentos, síntesis y montaje | 14 nov 2026 | PC5–PC6 | Partida real 9–6, victoria, RESET y nueva partida; *slack* positivo |
 | [F7](F7_informe_protoboard/) | Informe técnico del funcionamiento en protoboard | 15 nov 2026 | PC6 | Explicación lógica y física del prototipo |
-| F8 | Esquemas y PCB en KiCad | en camino | — | — |
+| [F8](F8_pcb_kicad/) | Placa principal en KiCad | nov 2026 | — | Esquema, trazado, placa fabricada y soldada; controles en protoboard |
 
 Los informes que pidió el profesor los armamos a partir de estas fases y están en [`informes/`](../informes/).
 
@@ -34,3 +34,4 @@ Dejamos escritos los cambios para que se vea por qué el prototipo final no es i
 | Adaptador de niveles | SN74AHCT125 | Dos SN74HCT245N habilitados con 2N3904 | F4–F6 |
 | Marcador | 2 displays con decodificador por definir | 2 × CD4511BE + 2 × 5161AS de cátodo común | F6 |
 | Configuración de la FPGA | — | Por JTAG (volátil) | F6 |
+| Montaje | Protoboard (F4–F7) | Placa impresa para matrices, búferes y marcador; controles en protoboard | F8 |

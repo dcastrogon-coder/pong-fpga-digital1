@@ -1,0 +1,14 @@
+PASS prueba 1
+PASS prueba 2
+PASS prueba 3
+PASS prueba 4
+PASS prueba 5
+PASS prueba 6
+PASS prueba 7
+PASS prueba 8
+PASS prueba 9
+PASS prueba 10
+----------------------------
+RESET F5: 10/10 PASS
+----------------------------
+tb/tb_reset_seguro_f5.v:108: $finish called at 451000 (1ps)

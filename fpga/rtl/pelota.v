@@ -29,29 +29,25 @@ module pelota (
                     (XB - 4'd1);
 
     // ------------------------------------
-    // 2. Deteccion de pared vertical
+    // 2. Deteccion de borde superior/inferior en cada tick
     // ------------------------------------
 
     wire REFLECT_Y;
 
-    assign REFLECT_Y = PHASE &&
-                       (
-                           ((YB == 3'd0) && !DY) ||
-                           ((YB == 3'd7) &&  DY)
-                       );
+    assign REFLECT_Y =
+        ((YB == 3'd0) && !DY) ||
+        ((YB == 3'd7) &&  DY);
 
     // Direccion vertical corregida
     assign DY_CAND = DY ^ REFLECT_Y;
 
     // ------------------------------------
-    // 3. Movimiento vertical candidato
+    // 3. Movimiento vertical en cada tick (diagonal 45 grados)
     // ------------------------------------
 
-    assign Y_CAND = !PHASE ?
-                    YB :
-                    (DY_CAND ?
-                     (YB + 3'd1) :
-                     (YB - 3'd1));
+    assign Y_CAND = DY_CAND ?
+                    (YB + 3'd1) :
+                    (YB - 3'd1);
 
     // ------------------------------------
     // 4. Registros secuenciales
@@ -103,7 +99,8 @@ module pelota (
                 YB <= Y_CAND;
                 DY <= DY_CAND;
 
-                // Alternancia de fase
+                // Se conserva PHASE por compatibilidad de interfaz;
+                // ya no controla el avance vertical
                 PHASE <= ~PHASE;
 
             end

@@ -1,6 +1,8 @@
-# Hardware del prototipo (versión F6)
+# Hardware del prototipo
 
-Todo lo de esta página lo sacamos de nuestras memorias de F4, F6 y F7 ([`fases/`](../fases/)). Es el montaje que tenemos funcionando en protoboard. Los esquemas definitivos y las dos PCB los vamos a hacer en F8 (KiCad).
+Todo lo de esta página lo sacamos de nuestras memorias de F4 a F8 ([`fases/`](../fases/)). Las conexiones son las que validamos en protoboard en F6; en F8 pasamos las matrices, los búferes y el marcador a una placa impresa hecha en KiCad, y los controles quedaron en protoboard con aprobación del profesor. Las fotos, el esquema y el trazado de la placa están en [`fases/F8_pcb_kicad/`](../fases/F8_pcb_kicad/).
+
+![Montaje final](../fases/F8_pcb_kicad/foto_montaje_final.jpg)
 
 ![Arquitectura del montaje](../informes/figuras/fig_sistema.png)
 
@@ -15,19 +17,22 @@ Todo lo de esta página lo sacamos de nuestras memorias de F4, F6 y F7 ([`fases/
 | Display 5161AS de cátodo común | 2 | Un dígito de puntaje por jugador |
 | 2N3904 | 2 | Habilitan la salida (/OE) de cada SN74HCT245N |
 | Resistencia de 470 Ω | 14 | Una por segmento a–g (7 por display) |
-| Resistencia de 10 kΩ | 15 | 8 pull-down en las entradas BCD, 2 pull-up en /OE, 2 de base, 3 de polarización en las líneas seriales |
+| Resistencia de 10 kΩ | 22 | En la placa: 8 pull-down en las entradas BCD, 2 pull-up en /OE, 2 de base y 3 en las líneas seriales. En los controles: 7 pull-up a 3,3 V |
 | Resistencia de 100 kΩ | 2 | Pull-down de base de cada 2N3904 |
 | Condensador de 100 nF | 2 | Desacoplo de cada SN74HCT245N |
-| Mandos cableados (UP, DOWN, DETECT) | 2 | Controles de J1 y J2 |
-| Pulsadores | 3 | START, PAUSE y RESET |
+| Pulsadores de los mandos (UP, DOWN) | 4 | Controles de J1 y J2, en protoboard |
+| Pulsadores | 3 | START, PAUSE y RESET, en protoboard |
+| Placa principal (F8) | 1 | Búferes, marcador y conectores de las matrices |
 | Fuente externa de 5 V / 3 A | 1 | Matrices, búferes, decodificadores y displays |
-| Protoboards y cables | — | Montaje |
+| Protoboards y cables | — | Controles y conexiones a la tarjeta |
 
 ## Conexiones
 
 ![Circuito de conexiones](../informes/figuras/fig_conexiones.png)
 
-Las entradas con sufijo `_N` son activas en bajo: el pulsador lleva la línea a GND y en reposo queda en 3,3 V.
+Las entradas con sufijo `_N` son activas en bajo: el pulsador lleva la línea a GND y una resistencia de 10 kΩ la sube a 3,3 V en reposo (los 3,3 V salen de la tarjeta, nunca de la fuente de 5 V). Las líneas DETECT de cada mando van a su tierra: mientras el mando está conectado la FPGA lee 0, y si se suelta ese cable el juego pasa a PAUSA_RF.
+
+![Esquema de los controles](../fases/F8_pcb_kicad/esquematico_controles.jpg)
 
 ### Reloj y entradas
 
@@ -96,6 +101,24 @@ Los comunes del 5161AS (pines 3 y 8) van a GND.
 | Colector | /OE (pin 19) del HCT245 #1, pull-up 10 kΩ a 5 V | /OE (pin 19) del HCT245 #2, pull-up 10 kΩ a 5 V |
 
 Con `HCT_EN = 1` el transistor conduce, /OE baja y el búfer deja pasar las señales. Con `HCT_EN = 0` (o la FPGA sin configurar) el pull-up deja los búferes en alta impedancia. La FPGA sube `HCT_EN` unos 50 ms después de arrancar.
+
+## Conectores de la placa principal (F8)
+
+En la placa, cada señal de las tablas anteriores llega por uno de estos conectores. Ojo: el J1 y el J2 de la placa no son el conector LCD (J2) de la tarjeta.
+
+| Conector de la placa | Pin | Señal | Pin FPGA |
+|----------------------|:---:|-------|:--------:|
+| J2 (5 pines) | 1 | DIN | 28 |
+| | 2 | CLK_LED | 31 |
+| | 3 | LOAD (CS) | 33 |
+| | 4 | HCT_EN | 49 |
+| | 5 | GND común | GND |
+| J1 (8 pines) | 1–4 | `SCORE_J1_BCD[0..3]` (contactos LCD 7–10) | 101, 103, 104, 105 |
+| | 5–8 | `SCORE_J2_BCD[0..3]` (contactos LCD 11–14) | 106, 110, 111, 112 |
+| J3 (2 pines) | 1 | +5 V de la fuente externa | — |
+| | 2 | GND de la fuente externa | — |
+
+J1 no lleva tierra: la referencia entre la tarjeta y la placa llega solo por el pin 5 de J2, así que ese cable tiene que quedar bien firme.
 
 ## Alimentación
 
