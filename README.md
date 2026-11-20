@@ -64,8 +64,7 @@ pong-fpga-digital1/
 │   ├── sim/           Script para correr todas las pruebas y sus registros
 │   └── *.qpf/.qsf/.sdc  Proyecto de Quartus
 ├── hardware/          Lista de componentes, conexiones pin a pin, encendido y apagado
-├── informes/          Informe de avance, del Desafío y final, con sus figuras (LaTeX + PDF)
-└── caja/              Caja para corte láser (DXF y scripts)
+└── informes/          Informe de avance, del Desafío y final, con sus figuras (LaTeX + PDF)
 ```
 
 ## Cómo simular

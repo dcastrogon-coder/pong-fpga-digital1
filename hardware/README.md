@@ -4,6 +4,8 @@ Todo lo de esta página lo sacamos de nuestras memorias de F4 a F8 ([`fases/`](.
 
 ![Sistema completo en funcionamiento](../fases/F8_pcb_kicad/foto_sistema_funcionando.jpg)
 
+El montaje final queda sobre la mesa en tres partes: la tarjeta A-C4E6E10, la placa principal con el marcador y las matrices en su soporte (conectadas a la placa por cable plano), y los controles en protoboard fijados sobre una base.
+
 ![Arquitectura del montaje](../informes/figuras/fig_sistema.png)
 
 ## Lista de componentes

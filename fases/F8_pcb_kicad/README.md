@@ -65,7 +65,7 @@ Tarjeta A-C4E6E10, placa principal (en la foto, con las matrices retiradas para 
 
 ![Sistema completo en funcionamiento](foto_sistema_funcionando.jpg)
 
-Tarjeta con el diseño cargado, placa principal con el marcador en 1–0, matrices conectadas a la placa por cable (a la derecha) y controles en protoboard (abajo).
+Así quedó el montaje final: la tarjeta con el diseño cargado, la placa principal con el marcador (aquí en 1–0), las dos matrices en su soporte conectadas a la placa por cable plano (a la derecha) y los controles en tres secciones de protoboard fijadas sobre una base (abajo).
 
 | Tablero durante el juego | Marcador |
 |--------------------------|----------|
