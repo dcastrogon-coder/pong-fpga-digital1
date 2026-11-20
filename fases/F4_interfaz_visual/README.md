@@ -21,6 +21,6 @@ Fue la primera vez que probamos el diseño en la tarjeta. Usamos el top [`pong_f
 
 Por esas correcciones, tres testbenches de F3 (`tb_imagen`, `tb_transmisor_max7219` y `tb_pong_max7219_integrado`) esperaban la orientación vieja. Les actualizamos los valores esperados; están marcados con el comentario *Ajuste F4*.
 
-De F4 nos quedó pendiente habilitar el 74HCT245 de forma segura al encender y apagar. Lo resolvimos en F6 con `HCT_EN` y los 2N3904.
+En F4 vimos que había que habilitar el 74HCT245 de forma segura al encender y apagar; lo resolvimos en F5 y F6 con `HCT_EN` y los 2N3904.
 
 El detalle completo está en [`F4_RESULTADOS_VALIDACION.txt`](F4_RESULTADOS_VALIDACION.txt).

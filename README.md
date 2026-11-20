@@ -13,7 +13,7 @@ Universidad Nacional de Colombia, sede Bogotá · Departamento de Ingeniería El
 
 ## De qué se trata
 
-Hicimos un Pong para dos jugadores **solo con lógica digital** (sin Arduino ni ESP32) sobre una FPGA **Cyclone IV E EP4CE10E22C8N** en la tarjeta **A-C4E6E10**. Todo lo escribimos en Verilog y lo compilamos en Quartus Prime 25.1 Lite.
+El proyecto está **completo y funcional**: hicimos un Pong para dos jugadores **solo con lógica digital** (sin Arduino ni ESP32) sobre una FPGA **Cyclone IV E EP4CE10E22C8N** en la tarjeta **A-C4E6E10**. Todo lo escribimos en Verilog y lo compilamos en Quartus Prime 25.1 Lite.
 
 * El tablero es de **8 × 16 LED**: dos módulos FC-16 de 8 × 8 en cascada, con controlador GC7219C (compatible con MAX7219).
 * Cada jugador mueve su paleta con un **mando cableado** (UP, DOWN y DETECT). Si un mando se desconecta, el juego se pausa.

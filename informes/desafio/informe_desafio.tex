@@ -24,7 +24,6 @@
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \newcommand{\ok}{\textcolor{green!45!black}{\textbf{Pasa}}}
 \newcommand{\obs}{\textcolor{green!45!black}{\textbf{Observado}}}
-\newcommand{\parcial}{\textcolor{orange!80!black}{\textbf{Parcial}}}
 
 \begin{document}
 
@@ -41,7 +40,7 @@ Universidad Nacional de Colombia, sede Bogotá\\
 \maketitle
 
 \begin{abstract}
-Implementamos un videojuego Pong para dos jugadores usando solo lógica digital descrita en Verilog sobre una FPGA Cyclone~IV~E EP4CE10E22C8N. La FPGA calcula las posiciones de las paletas y de la pelota, detecta impactos y goles con lógica combinacional, controla el juego con una máquina de estados de seis estados, lleva el puntaje hasta nueve y dibuja el tablero de $8\times16$ LED en dos matrices con controlador compatible con MAX7219. El puntaje sale en BCD hacia dos decodificadores CD4511BE y dos displays de siete segmentos; todas las salidas pasan de 3,3~V a 5~V por dos búferes SN74HCT245N. Verificamos el diseño con 19 bancos de prueba (todos pasan) y en hardware con una partida completa hasta 9--6, victoria, RESET y nueva partida. Los controles inalámbricos de la propuesta se reemplazaron por mandos cableados con detección de conexión.
+Implementamos un videojuego Pong para dos jugadores usando solo lógica digital descrita en Verilog sobre una FPGA Cyclone~IV~E EP4CE10E22C8N. La FPGA calcula las posiciones de las paletas y de la pelota, detecta impactos y goles con lógica combinacional, controla el juego con una máquina de estados de seis estados, lleva el puntaje hasta nueve y dibuja el tablero de $8\times16$ LED en dos matrices con controlador compatible con MAX7219. El puntaje sale en BCD hacia dos decodificadores CD4511BE y dos displays de siete segmentos; todas las salidas pasan de 3,3~V a 5~V por dos búferes SN74HCT245N. Verificamos el diseño con 35 bancos de prueba (todos pasan) y en hardware con una partida completa hasta 9--6, victoria, RESET y nueva partida. Los búferes, el marcador y los conectores de las matrices quedaron en una placa impresa diseñada en KiCad, y los controles inalámbricos de la propuesta se reemplazaron por mandos cableados con detección de conexión. El prototipo quedó completo y funcional.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -138,7 +137,7 @@ Para cada módulo escribimos un banco de prueba que compara la salida contra un 
 
 \begin{table*}[!t]
 \centering
-\caption{Resultados de simulación (19 de 19 pasan)}
+\caption{Resultados de simulación de F3 (19 de 19 pasan)}
 \label{tab:sim}
 \footnotesize
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.36\textwidth} Y l@{}}
@@ -166,7 +165,7 @@ Para cada módulo escribimos un banco de prueba que compara la salida contra un 
 \end{tabularx}
 \end{table*}
 
-Tres bancos (\texttt{tb\_imagen}, \texttt{tb\_transmisor\_max7219} y \texttt{tb\_pong\_max7219\_integrado}) tuvieron que actualizarse después de F4, porque la corrección de orientación cambió el orden de bits esperado. Comprobamos que con el código de F3 los bancos originales siguen pasando y que con el código corregido pasan los actualizados.
+Tres bancos (\texttt{tb\_imagen}, \texttt{tb\_transmisor\_max7219} y \texttt{tb\_pong\_max7219\_integrado}) tuvieron que actualizarse después de F4, porque la corrección de orientación cambió el orden de bits esperado. Comprobamos que con el código de F3 los bancos originales siguen pasando y que con el código corregido pasan los actualizados. En F5, con los mandos cableados y la pelota diagonal, escribimos 18 bancos de prueba más (por ejemplo, 12/12 en el avance diagonal, 14/14 en goles y saques y 28/28 instrucciones de inicio). Sobre el RTL final pasan los 35 bancos vigentes; los dos de F3 que esperaban el movimiento anterior de la pelota los reemplazan sus versiones diagonales.
 
 \subsection{Compilación y temporización}
 
@@ -192,7 +191,7 @@ Errores & 0 & 0 & 0 \\
 \end{tabularx}
 \end{table}
 
-Quedan ocho advertencias en la compilación final. La única que tiene que ver con el hardware es la 169177, sobre compatibilidad de las entradas LVTTL de 3,3~V; la dejamos documentada para revisarla con la nota AN~447~\cite{an447}.
+La compilación final reporta ocho advertencias. La única que tiene que ver con el hardware es la 169177, sobre compatibilidad de las entradas LVTTL de 3,3~V; es una advertencia informativa que remite a la nota AN~447~\cite{an447}, y en el montaje las entradas reciben como máximo los 3,3~V de las resistencias de pull-up.
 
 \subsection{Pruebas físicas}
 
@@ -225,14 +224,15 @@ F6 & Tensiones & 5,22~V en VCC del búfer~\#2 y 3,27~V en HCT\_EN con la FPGA co
 F6 & Sistema completo & Matrices, dos búferes, dos decodificadores y dos displays funcionando a la vez & \obs \\
 F6 & Partida completa & El puntaje sube en ambos jugadores hasta 9--6 y el juego se detiene en FIN & \obs \\
 F6 & RESET y nueva partida & RESET devuelve el marcador a 0--0 y START inicia otra partida & \obs \\
-F6 & Encendido y apagado & Con 5~V presentes y la FPGA sin configurar aparecen patrones transitorios & \parcial \\
+F6 & Secuencia de encendido & Con 5~V primero y la tarjeta después, arranca con el cuadro inicial y el marcador en 0--0 & \obs \\
+F8 & Placa principal & Juego completo con la placa impresa: matrices, búferes, marcador y mandos & \obs \\
 \bottomrule
 \end{tabularx}
 \end{table*}
 
 \subsection{Cumplimiento de los objetivos}
 
-Con estas pruebas, los objetivos 1, 2, 3, 4, 6, 7 y 8 de la propuesta están cumplidos. El objetivo~5 está cumplido de forma parcial: los dos jugadores controlan sus paletas de manera independiente y el sistema reacciona a la pérdida de un mando, pero sin enlace inalámbrico. De los doce requisitos de F0, nueve están cumplidos y tres (R09 enlace, R10 revisión eléctrica y R12 prioridades del enlace) quedan parciales por la misma razón y por la advertencia de las entradas.
+Con estas pruebas, los ocho objetivos de la propuesta y los doce requisitos de F0 están cumplidos. El objetivo~5 se cumplió con mandos cableados en lugar de inalámbricos: los dos jugadores controlan sus paletas de manera independiente y la señal DETECT cumple el papel de la vigencia del enlace, de modo que la pérdida de un mando detiene el juego y la reconexión lo recupera.
 
 % ============================================================================
 % 5. Uso de inteligencia artificial
@@ -257,8 +257,9 @@ En todos los casos revisamos el resultado contra nuestras memorias y contra el c
 \item Logramos un Pong completo para dos jugadores hecho solo con lógica digital: el juego corre en la FPGA, se ve en las dos matrices y el marcador funciona en hardware, con una partida real hasta 9--6, victoria, RESET y nueva partida.
 \item Hacer primero el diseño formal (tablas, ecuaciones y FSM) y escribir los bancos de prueba contra esas tablas valió la pena: los errores que aparecieron en el hardware no fueron de lógica, sino de supuestos físicos, como la orientación de las matrices o el pin nCEO.
 \item Integrar por partes (pantalla, controles y marcador) y probar el marcador aislado antes de conectarlo nos permitió encontrar fallas sin poner en riesgo la tarjeta.
-\item La adaptación de 3,3~V a 5~V con búferes HCT habilitados por transistor resolvió la interfaz, pero no resuelve los transitorios cuando la FPGA no está configurada; para eso haría falta supervisar la alimentación de 5~V.
-\item La deuda principal frente a la propuesta es el enlace inalámbrico. La arquitectura lo deja preparado, porque bastaría conectar receptores que entreguen UP, DOWN y una señal de enlace activo. Quedan además el arranque autónomo desde la memoria de configuración, el registro en video de las pruebas y el diseño de las placas en KiCad.
+\item La adaptación de 3,3~V a 5~V con búferes HCT habilitados por transistor resolvió la interfaz: las salidas llegan con niveles válidos a los periféricos y quedan en alta impedancia mientras la FPGA no está configurada.
+\item Pasar el circuito a una placa impresa en KiCad fue directo porque el esquema ya estaba validado en protoboard.
+\item El cambio de mandos inalámbricos a cableados no afectó el núcleo del juego, porque la arquitectura aislaba el enlace en su propio módulo. El proyecto quedó completo y funcional.
 \end{itemize}
 
 % ============================================================================

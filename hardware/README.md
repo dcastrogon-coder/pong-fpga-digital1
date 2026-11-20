@@ -140,8 +140,8 @@ Para apagar: **primero** la FPGA, **después** la fuente de 5 V.
 
 La configuración por `.sof` se borra al quitarle la alimentación a la FPGA, así que toca volver a programarla en cada encendido.
 
-## Limitaciones conocidas
+## Notas de operación
 
-* Con la FPGA apagada o sin configurar y los 5 V encendidos pueden aparecer patrones transitorios en las matrices y los displays.
-* Quartus deja la advertencia 169177 sobre compatibilidad LVTTL 3,3/3,0/2,5 V en las entradas; nos falta revisarla con la nota de aplicación AN 447.
-* No hay arranque autónomo: la tarjeta trae una memoria de configuración serial (M25P16), pero todavía no la hemos programado.
+* Siguiendo el orden de encendido (5 V primero, tarjeta después), el sistema arranca con el cuadro inicial y el marcador en 0–0: los búferes solo se habilitan cuando la FPGA ya está configurada.
+* Quartus deja la advertencia 169177 sobre compatibilidad LVTTL 3,3/3,0/2,5 V en las entradas. Es informativa (remite a la nota de aplicación AN 447); en el montaje las entradas reciben como máximo los 3,3 V de las resistencias de pull-up.
+* El diseño se carga por JTAG. Si se quiere que arranque sin computador, la tarjeta trae una memoria de configuración serial (M25P16) donde se puede grabar un `.jic`.

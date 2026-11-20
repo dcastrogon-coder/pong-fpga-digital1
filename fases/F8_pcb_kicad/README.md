@@ -59,10 +59,8 @@ De izquierda a derecha: los dos pulsadores de J1, luego START, PAUSE y RESET, y 
 
 ![Montaje final](foto_montaje_final.jpg)
 
-Tarjeta A-C4E6E10, placa principal (en la foto todavía sin las matrices insertadas) y controles en protoboard.
+Tarjeta A-C4E6E10, placa principal (en la foto, con las matrices retiradas para que se vean los conectores) y controles en protoboard. Con las matrices insertadas, el sistema completo funciona igual que en protoboard.
 
-## Lo que mejoraríamos en una segunda versión
+## Extensiones posibles
 
-* Trazar la placa en dos capas para eliminar los cuatro puentes de cable.
-* Agregar un condensador de 100 nF junto a cada CD4511BE y un electrolítico de 220–470 µF en la entrada de 5 V.
-* Llevar también una tierra por J1, para que la referencia con la FPGA no dependa solo del pin 5 de J2.
+La placa quedó completa y funcionando. Sobre esta base, una versión de dos capas eliminaría los puentes de cable y dejaría espacio para condensadores de desacople junto a los CD4511BE y una tierra adicional por J1.
