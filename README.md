@@ -24,6 +24,12 @@ El proyecto está **completo y funcional**: hicimos un Pong para dos jugadores *
 
 ![Arquitectura del sistema](informes/figuras/fig_sistema.png)
 
+## Demostración en video
+
+[![Video de demostración: partida en el montaje final](fases/F8_pcb_kicad/video_demostracion_portada.jpg)](fases/F8_pcb_kicad/video_demostracion.mp4)
+
+En el [video de demostración](fases/F8_pcb_kicad/video_demostracion.mp4) (20 s) jugamos una partida en el montaje final. Los dos jugadores mueven sus paletas con los mandos de la protoboard, la pelota avanza en diagonal y rebota en las paletas y en los bordes, y el marcador de la placa se actualiza con cada gol. Al final acercamos la cámara al marcador. Al hacer clic en la imagen, GitHub abre el video.
+
 ## Informes para el profesor
 
 | Informe | Archivo |

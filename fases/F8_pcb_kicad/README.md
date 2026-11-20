@@ -73,6 +73,12 @@ Así quedó el montaje final: la tarjeta con el diseño cargado, la placa princi
 
 Paletas de J1 (columna 0) y J2 (columna 15) con la pelota en el centro para el saque, y marcador 1–0 después del primer gol (arriba J1, abajo J2).
 
+## Video de demostración
+
+[![Video de demostración](video_demostracion_portada.jpg)](video_demostracion.mp4)
+
+[`video_demostracion.mp4`](video_demostracion.mp4) (20 s): partida en el montaje final. Se ven las paletas moviéndose con los mandos de la protoboard, la pelota en diagonal rebotando en las paletas y en los bordes, el marcador avanzando con cada gol y, al final, un acercamiento a la placa con el marcador.
+
 ## Extensiones posibles
 
 La placa quedó completa y funcionando. Sobre esta base, una versión de dos capas eliminaría los puentes de cable y dejaría espacio para condensadores de desacople junto a los CD4511BE y una tierra adicional por J1.

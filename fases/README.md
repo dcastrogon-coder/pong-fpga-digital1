@@ -18,7 +18,7 @@ Cada fase tiene su carpeta con el documento que entregamos y la evidencia que la
 | [F5](F5_controles_cableados/) | Controles cableados y validación física del juego | 14 nov 2026 | PC5 | Juego completo en la tarjeta, pelota diagonal, 18 bancos de prueba vigentes (12/12, 14/14, 28/28) |
 | [F6](F6_integracion_montaje/) | Integración del marcador de 7 segmentos, síntesis y montaje | 14 nov 2026 | PC5–PC6 | Partida real 9–6, victoria, RESET y nueva partida; *slack* positivo |
 | [F7](F7_informe_protoboard/) | Informe técnico del funcionamiento en protoboard | 15 nov 2026 | PC6 | Explicación lógica y física del prototipo |
-| [F8](F8_pcb_kicad/) | Placa principal en KiCad | nov 2026 | — | Esquema, trazado, placa fabricada y soldada; controles en protoboard |
+| [F8](F8_pcb_kicad/) | Placa principal en KiCad | nov 2026 | — | Esquema, trazado, placa fabricada y soldada; controles en protoboard; video de demostración |
 
 Los informes que pidió el profesor los armamos a partir de estas fases y están en [`informes/`](../informes/).
 
