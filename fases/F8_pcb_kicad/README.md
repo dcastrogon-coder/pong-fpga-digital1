@@ -61,6 +61,18 @@ De izquierda a derecha: los dos pulsadores de J1, luego START, PAUSE y RESET, y 
 
 Tarjeta A-C4E6E10, placa principal (en la foto, con las matrices retiradas para que se vean los conectores) y controles en protoboard. Con las matrices insertadas, el sistema completo funciona igual que en protoboard.
 
+## Sistema funcionando con la placa
+
+![Sistema completo en funcionamiento](foto_sistema_funcionando.jpg)
+
+Tarjeta con el diseño cargado, placa principal con el marcador en 1–0, matrices conectadas a la placa por cable (a la derecha) y controles en protoboard (abajo).
+
+| Tablero durante el juego | Marcador |
+|--------------------------|----------|
+| ![Matrices](foto_matrices_juego.jpg) | <img src="foto_marcador_1_0.jpg" width="140"> |
+
+Paletas de J1 (columna 0) y J2 (columna 15) con la pelota en el centro para el saque, y marcador 1–0 después del primer gol (arriba J1, abajo J2).
+
 ## Extensiones posibles
 
 La placa quedó completa y funcionando. Sobre esta base, una versión de dos capas eliminaría los puentes de cable y dejaría espacio para condensadores de desacople junto a los CD4511BE y una tierra adicional por J1.

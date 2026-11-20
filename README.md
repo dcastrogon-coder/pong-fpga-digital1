@@ -9,7 +9,7 @@ Universidad Nacional de Colombia, sede Bogotá · Departamento de Ingeniería El
 | David Eduardo Chivata Arias | dchivata@unal.edu.co |
 | Daniel Felipe Castro González | dcastrogon@unal.edu.co |
 
-![Montaje final: tarjeta, placa principal y controles](fases/F8_pcb_kicad/foto_montaje_final.jpg)
+![Sistema completo en funcionamiento: tarjeta, placa principal con el marcador en 1–0, matrices y controles](fases/F8_pcb_kicad/foto_sistema_funcionando.jpg)
 
 ## De qué se trata
 

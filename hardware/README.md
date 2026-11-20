@@ -2,7 +2,7 @@
 
 Todo lo de esta página lo sacamos de nuestras memorias de F4 a F8 ([`fases/`](../fases/)). Las conexiones son las que validamos en protoboard en F6; en F8 pasamos las matrices, los búferes y el marcador a una placa impresa hecha en KiCad, y los controles quedaron en protoboard con aprobación del profesor. Las fotos, el esquema y el trazado de la placa están en [`fases/F8_pcb_kicad/`](../fases/F8_pcb_kicad/).
 
-![Montaje final](../fases/F8_pcb_kicad/foto_montaje_final.jpg)
+![Sistema completo en funcionamiento](../fases/F8_pcb_kicad/foto_sistema_funcionando.jpg)
 
 ![Arquitectura del montaje](../informes/figuras/fig_sistema.png)
 

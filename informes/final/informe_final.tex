@@ -13,6 +13,7 @@
 %     F3_B8_transmisor_max7219_wave.png, F3_GOLES_VICTORIA_13_DE_13.png
 %   Tarjeta y montaje: F4_Prueba_Visual_MAX7219.png, foto_montaje_final.jpg,
 %     foto_controles_protoboard.jpg, esquematico_controles.jpg
+%   Sistema funcionando: foto_sistema_funcionando.jpg, foto_matrices_juego.jpg, foto_marcador_1_0.jpg
 %   Placa (F8): esquematico_pcb.jpg, layout_pcb_kicad.jpg, render_pcb_superior.jpg,
 %     render_pcb_inferior.jpg, foto_pcb_componentes.jpg, foto_pcb_soldaduras.jpg
 % ============================================================================
@@ -623,7 +624,22 @@ Con el peor margen de \textit{setup}, la frecuencia máxima estimada es $1/(20-6
 
 \subsection{Pruebas en la tarjeta}
 
-La Tabla~\ref{tab:fisicas} resume las pruebas físicas, ordenadas por fase.
+La Tabla~\ref{tab:fisicas} resume las pruebas físicas, ordenadas por fase. La Fig.~\ref{fig:funcionando} muestra el sistema completo en funcionamiento con la placa principal de F8, y la Fig.~\ref{fig:juego} muestra de cerca el tablero y el marcador durante una partida.
+
+\begin{figure*}[!t]
+  \centering
+  \figura{foto_sistema_funcionando.jpg}{0.6\textwidth}
+  \caption{Sistema completo en funcionamiento: tarjeta A-C4E6E10 con el diseño cargado, placa principal con el marcador en 1--0, matrices conectadas a la placa por cable (derecha) y controles en protoboard (abajo).}
+  \label{fig:funcionando}
+\end{figure*}
+
+\begin{figure}[!t]
+  \centering
+  \figura{foto_matrices_juego.jpg}{0.7\columnwidth}\hfill
+  \figura{foto_marcador_1_0.jpg}{0.22\columnwidth}
+  \caption{Juego en la tarjeta: paletas de J1 (columna~0) y J2 (columna~15) y pelota en el centro para el saque (izquierda), y marcador 1--0 después del primer gol (derecha; arriba J1, abajo J2).}
+  \label{fig:juego}
+\end{figure}
 
 \begin{table*}[!t]
 \centering
@@ -672,7 +688,7 @@ El esquema de la Fig.~\ref{fig:esquematico} conserva exactamente las conexiones 
 
 La placa es de una sola capa de cobre, por la cara de soldadura, con máscara verde y serigrafía de referencias por la cara de componentes; mide aproximadamente 9~cm de lado. Las pistas que no se pudieron trazar en una sola capa sin cruzarse quedaron en el diseño como conexiones sin pista (líneas finas en la Fig.~\ref{fig:layout}), y en la placa fabricada las completamos con cuatro puentes de cable aislado por la cara de soldadura (Fig.~\ref{fig:pcbfoto}, derecha). Los integrados van sobre bases, lo que permite cambiarlos y probar la placa por partes.
 
-Como J1 no tiene tierra, la referencia entre la FPGA y la placa llega por el pin~5 de J2, y por eso ese cable va bien asegurado. Con la placa montada, el sistema completo funciona igual que en protoboard: las matrices, el marcador y los mandos responden como en las pruebas de F5 y F6, y la partida transcurre hasta la victoria y el RESET.
+Como J1 no tiene tierra, la referencia entre la FPGA y la placa llega por el pin~5 de J2, y por eso ese cable va bien asegurado. Con la placa montada, el sistema completo funciona igual que en protoboard (Figs.~\ref{fig:funcionando} y~\ref{fig:juego}): las matrices, el marcador y los mandos responden como en las pruebas de F5 y F6, y la partida transcurre hasta la victoria y el RESET.
 
 \begin{figure}[!t]
   \centering
@@ -692,8 +708,8 @@ Como J1 no tiene tierra, la referencia entre la FPGA y la placa llega por el pin
 
 \begin{figure*}[!t]
   \centering
-  \figura{foto_pcb_componentes.jpg}{0.42\textwidth}\hspace{0.04\textwidth}
-  \figura{foto_pcb_soldaduras.jpg}{0.42\textwidth}
+  \figura{foto_pcb_componentes.jpg}{0.36\textwidth}\hspace{0.04\textwidth}
+  \figura{foto_pcb_soldaduras.jpg}{0.36\textwidth}
   \caption{Placa fabricada y soldada: cara de componentes con los integrados en sus bases, los displays y los espadines hembra de las dos matrices (izquierda), y cara de soldadura con los cuatro puentes de cable (derecha).}
   \label{fig:pcbfoto}
 \end{figure*}
