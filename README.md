@@ -59,6 +59,7 @@ pong-fpga-digital1/
 ├── documentos_base/   Propuesta corregida y guía metodológica
 ├── fases/             F0 a F8: documento de cada fase y su evidencia
 ├── fpga/
+│   ├── docs/          Explicación de cada archivo de código
 │   ├── rtl/           Módulos Verilog (diseño final de F6)
 │   ├── tb/            35 bancos de prueba autoverificados
 │   ├── sim/           Script para correr todas las pruebas y sus registros
@@ -66,6 +67,10 @@ pong-fpga-digital1/
 ├── hardware/          Lista de componentes, conexiones pin a pin, encendido y apagado
 └── informes/          Informe de avance, del Desafío y final, con sus figuras (LaTeX + PDF)
 ```
+
+## Documentación del código
+
+Cada archivo de código tiene su explicación en [`fpga/docs/`](fpga/docs/README.md): qué hace, sus puertos, cómo funciona por dentro, por qué lo hicimos así y cómo lo probamos. Ahí también explicamos el proyecto de Quartus, los bancos de prueba y la simulación automática, y seguimos una partida completa a través de los módulos.
 
 ## Cómo simular
 

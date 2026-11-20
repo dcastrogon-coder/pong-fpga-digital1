@@ -1,4 +1,4 @@
-# En cada cambio, GitHub compila el RTL y corre los 19 testbenches con
+# En cada cambio, GitHub compila el RTL y corre los 35 testbenches con
 # Icarus Verilog. Si algo deja de pasar, lo vemos antes de ir al laboratorio.
 name: Simulación del RTL
 

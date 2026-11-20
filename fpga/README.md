@@ -6,33 +6,37 @@ Esta carpeta tiene el diseño final del Pong (F6): el núcleo de F5 con los mand
 
 La máquina de estados del juego está en [`fig_fsm`](../informes/figuras/fig_fsm.png).
 
+**La explicación detallada de cada archivo está en [`docs/`](docs/README.md)**: qué hace cada módulo, sus puertos, cómo funciona por dentro, por qué lo hicimos así y con qué bancos de prueba lo verificamos.
+
 ## Archivos
+
+En la tabla, el nombre de cada archivo lleva a su documentación.
 
 | Archivo | Bloque | Qué hace |
 |---------|--------|----------|
-| `rtl/pong_f6_integracion_top.v` | **Top final** | Entradas activas en bajo, salidas a las matrices y al marcador BCD, `HCT_EN` 50 ms después de arrancar |
-| `rtl/pong_f5_core.v` | Integración | Núcleo del juego: conecta todos los bloques |
-| `rtl/pong_f5_controles_top.v` | Top de F5 | Igual al final pero sin las salidas del marcador |
-| `rtl/filtro_entrada_cableada.v` | Entradas | Sincroniza y filtra (20 ms) UP, DOWN y DETECT |
-| `rtl/supervisor_cableado.v` | Entradas | Comandos de cada mando y vigencia (`RF_OK_EFF`) a partir de DETECT |
-| `rtl/boton_evento.v` | Entradas | Sincroniza, filtra y da un pulso por pulsación (START, PAUSE) |
-| `rtl/reset_seguro.v` | Seguridad | Reset de arranque (`POR_REQ`) y RESET físico con liberación filtrada |
-| `rtl/control_juego.v` | Control | FSM de seis estados y pulsos de captura de gol, punto, centrado y rearme |
-| `rtl/temporizadores.v` | Temporización | Pulsos de pelota (200 ms) y paletas (250 ms) |
-| `rtl/paletas.v` | Motor | Posición de las paletas y posición efectiva para las colisiones |
-| `rtl/pelota.v` | Motor | Posición y dirección de la pelota; movimiento diagonal desde F5 |
-| `rtl/colisiones.v` | Motor | Impactos y goles de cada jugador |
-| `rtl/puntaje.v` | Marcador | Contadores 0–9, anotador y predicción de victoria |
-| `rtl/marcador_bcd.v` | Marcador | Buses BCD hacia los CD4511BE |
-| `rtl/captura_imagen.v` | Video | Instantánea de 13 bits de las posiciones |
-| `rtl/imagen.v` | Video | Byte de cada matriz para cada fila |
-| `rtl/transmisor_max7219.v` | Video | Inicialización y envío serial a los dos controladores en cascada |
-| `rtl/supervisor_fallos.v` | Seguridad | Detecta estados y registros inválidos y fuerza la reinicialización |
-| `rtl/pong_top.v`, `rtl/supervisor_rf.v` | F3 | Núcleo original con la interfaz RF; los dejamos como referencia |
-| `rtl/pong_f4_visual_top.v` | F4 | Top de la prueba visual de las matrices |
-| `tb/tb_*.v` | Pruebas | 35 testbenches: 17 de F3 (tres con el ajuste de orientación de F4) y 18 de F5 |
-| `tb/anteriores_al_movimiento_diagonal/` | Pruebas | 4 testbenches que esperan el movimiento de la pelota anterior a F5; no se corren |
-| `pong_f3.qpf`, `pong_top.qsf`, `pong_f3.sdc` | Quartus | Proyecto (revisión `pong_top`, top `pong_f6_integracion_top`), pines y restricciones |
+| [`rtl/pong_f6_integracion_top.v`](docs/pong_f6_integracion_top.md) | **Top final** | Entradas activas en bajo, salidas a las matrices y al marcador BCD, `HCT_EN` 50 ms después de arrancar |
+| [`rtl/pong_f5_core.v`](docs/pong_f5_core.md) | Integración | Núcleo del juego: conecta todos los bloques |
+| [`rtl/pong_f5_controles_top.v`](docs/pong_f5_controles_top.md) | Top de F5 | Igual al final pero sin las salidas del marcador |
+| [`rtl/filtro_entrada_cableada.v`](docs/filtro_entrada_cableada.md) | Entradas | Sincroniza y filtra (20 ms) UP, DOWN y DETECT |
+| [`rtl/supervisor_cableado.v`](docs/supervisor_cableado.md) | Entradas | Comandos de cada mando y vigencia (`RF_OK_EFF`) a partir de DETECT |
+| [`rtl/boton_evento.v`](docs/boton_evento.md) | Entradas | Sincroniza, filtra y da un pulso por pulsación (START, PAUSE) |
+| [`rtl/reset_seguro.v`](docs/reset_seguro.md) | Seguridad | Reset de arranque (`POR_REQ`) y RESET físico con liberación filtrada |
+| [`rtl/control_juego.v`](docs/control_juego.md) | Control | FSM de seis estados y pulsos de captura de gol, punto, centrado y rearme |
+| [`rtl/temporizadores.v`](docs/temporizadores.md) | Temporización | Pulsos de pelota (200 ms) y paletas (250 ms) |
+| [`rtl/paletas.v`](docs/paletas.md) | Motor | Posición de las paletas y posición efectiva para las colisiones |
+| [`rtl/pelota.v`](docs/pelota.md) | Motor | Posición y dirección de la pelota; movimiento diagonal desde F5 |
+| [`rtl/colisiones.v`](docs/colisiones.md) | Motor | Impactos y goles de cada jugador |
+| [`rtl/puntaje.v`](docs/puntaje.md) | Marcador | Contadores 0–9, anotador y predicción de victoria |
+| [`rtl/marcador_bcd.v`](docs/marcador_bcd.md) | Marcador | Buses BCD hacia los CD4511BE |
+| [`rtl/captura_imagen.v`](docs/captura_imagen.md) | Video | Instantánea de 13 bits de las posiciones |
+| [`rtl/imagen.v`](docs/imagen.md) | Video | Byte de cada matriz para cada fila |
+| [`rtl/transmisor_max7219.v`](docs/transmisor_max7219.md) | Video | Inicialización y envío serial a los dos controladores en cascada |
+| [`rtl/supervisor_fallos.v`](docs/supervisor_fallos.md) | Seguridad | Detecta estados y registros inválidos y fuerza la reinicialización |
+| [`rtl/pong_top.v`](docs/pong_top.md), [`rtl/supervisor_rf.v`](docs/supervisor_rf.md) | F3 | Núcleo original con la interfaz RF; los dejamos como referencia |
+| [`rtl/pong_f4_visual_top.v`](docs/pong_f4_visual_top.md) | F4 | Top de la prueba visual de las matrices |
+| [`tb/tb_*.v`](docs/bancos_de_prueba.md) | Pruebas | 35 testbenches: 17 de F3 (tres con el ajuste de orientación de F4) y 18 de F5 |
+| [`tb/anteriores_al_movimiento_diagonal/`](docs/bancos_de_prueba.md#bancos-archivados-tbanteriores_al_movimiento_diagonal) | Pruebas | 4 testbenches que esperan el movimiento de la pelota anterior a F5; no se corren |
+| [`pong_f3.qpf`, `pong_top.qsf`, `pong_f3.sdc`](docs/proyecto_quartus.md) | Quartus | Proyecto (revisión `pong_top`, top `pong_f6_integracion_top`), pines y restricciones |
 
 ## Correr las pruebas
 
